@@ -171,7 +171,7 @@ async def duplicate_trip(trip_id: str):
 @api_router.patch("/trips/{trip_id}/dates")
 async def update_trip_dates(trip_id: str, data: TripDates):
     oid = to_oid(trip_id)
-    res = await db.trips.update_one({"_id": oid}, {"$set": {**data.model_dump(), "updated_at": now_iso()}})
+    res = await db.trips.update_one({"_id": oid}, {"$set": {**data.model_dump(exclude_unset=True), "updated_at": now_iso()}})
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Viaggio non trovato")
     return serialize(Trip.from_mongo(await db.trips.find_one({"_id": oid})))

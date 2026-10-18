@@ -1,0 +1,30 @@
+{
+  "summary": "Iteration 6 tested date auto-save on the backend and the frontend (desktop 1920). Backend: 5 of 6 pytest tests pass. PATCH /api/trips/{id}/dates updates only date and leg_dates; legs, total_km, name and waypoints are unchanged and the change persists via GET. An invalid date or leg_date returns 422. An unknown or malformed id returns 404. The monthly report follows the leg dates: moving leg 2 to the next month lowers the month's legs by 1 and its km by exactly that leg's km. UI: Milano -> Bologna (stop) -> Firenze with Calcola tratte auto-saves the trip with no PATCH. Three consecutive edits to input-leg-date-2 (2026-11-03/04/05) produced exactly 1 PATCH and the toast 'Data salvata'. The monthly report went from 693,4 km / 7 legs to 584,5 km / 6 legs (-108,9 km, the length of leg 2). After a reload, loading via btn-load-saved-trip-{id} showed leg1=2026-10-18 (the trip date) and leg2=2026-11-05. Loading sent no PATCH and showed no 'Data salvata' toast. Changing input-trip-date to 2026-10-21 sent 1 PATCH ({date:'2026-10-21', leg_dates:['','2026-11-05']}) with the toast. Leg 1 followed the new date and leg 2 kept its custom date. The saved card updated to '21 ott 2026'. Recalculating right after sent no PATCH and kept the leg dates. After btn-reset-planner, changing the date sent no PATCH. Dates stay freely editable.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "PATCH /api/trips/{id}/dates", "issue": "Not a true partial PATCH. TripDates has defaults (date=today, leg_dates=[]), so a body without 'date' resets the trip date to today and a body without 'leg_dates' clears the custom leg dates. The frontend always sends both fields, so this does not affect users today. Fix: use a separate model with Optional fields and only $set the fields provided (model_dump(exclude_unset=True))."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_trip_dates_patch.py", "/app/test_reports/pytest/pytest_iter6.xml"],
+  "action_items": [
+    "(Minor) Make PATCH /trips/{id}/dates honour partial bodies (exclude_unset) so that omitted fields are not reset."
+  ],
+  "critical_code_review_comments": [
+    "Planner.jsx auto-save effect: if the user edits a date and then clicks Nuovo or loads another trip within 700 ms, the effect cleanup clears the timer and the pending date change is lost silently. Consider flushing the pending save on reset or loadTrip.",
+    "If the route is edited (e.g. a stop is removed) but not recalculated, the date auto-save still PATCHes leg_dates that may have more entries than the stored legs. This is harmless for the report (indexes past the legs are ignored), but stale entries remain.",
+    "The effect depends on 'search'. Typing in the search box while a save is pending restarts the 700 ms timer. This is harmless."
+  ],
+  "updated_files": ["/app/backend/tests/test_trip_dates_patch.py"],
+  "success_rate": {"backend": "83% (5/6; the failure is the minor partial-PATCH semantics)", "frontend": "100%"},
+  "test_credentials": "none (no auth)",
+  "seed_data_creation": "Created 'Milano → Firenze' (UI) and TEST_dates (pytest); both deleted. Note: no trip named 'Provaa tel' was in the DB at the start of this iteration (only two '44.14... → 44.14...' coordinate trips, which were left untouched).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "The browser clock is 2026-10-18. Count PATCH requests with page.on('request'). Sonner toasts last about 4 s. The auto-save debounce is 700 ms, so wait about 1.2 s after editing."
+}

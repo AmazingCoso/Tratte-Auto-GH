@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="6" time="5.087" timestamp="2026-10-18T15:24:09.972936+00:00" hostname="agent-env-2bec7a9d-8907-4334-a138-46fb983642d9"><testcase classname="tests.test_trip_dates_patch" name="test_trip_has_legs" time="3.798" /><testcase classname="tests.test_trip_dates_patch" name="test_patch_updates_only_dates" time="0.173" /><testcase classname="tests.test_trip_dates_patch" name="test_monthly_report_follows_leg_dates" time="0.232" /><testcase classname="tests.test_trip_dates_patch" name="test_invalid_date_422" time="0.079" /><testcase classname="tests.test_trip_dates_patch" name="test_unknown_id_404" time="0.077" /><testcase classname="tests.test_trip_dates_patch" name="test_partial_body_behaviour" time="0.124"><failure message="AssertionError: Omitted date overwritten (not true PATCH semantics)&#10;assert '2026-10-18' == '2026-10-12'&#10;  &#10;  - 2026-10-12&#10;  ?          ^&#10;  + 2026-10-18&#10;  ?          ^">test_trip_dates_patch.py:76: in test_partial_body_behaviour
+    assert r.json()["date"] == "2026-10-12", "Omitted date overwritten (not true PATCH semantics)"
+E   AssertionError: Omitted date overwritten (not true PATCH semantics)
+E   assert '2026-10-18' == '2026-10-12'
+E     
+E     - 2026-10-12
+E     ?          ^
+E     + 2026-10-18
+E     ?          ^</failure></testcase></testsuite></testsuites>

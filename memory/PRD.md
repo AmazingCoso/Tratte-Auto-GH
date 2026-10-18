@@ -17,6 +17,7 @@ Inizialmente era stato chiesto un CRM vendite, poi l'utente ha incollato un HTML
 
 ## Implementato (cont.)
 - 2026-06: Report mensile Excel: una riga per giorno (Data, Viaggio, Percorso, Distanza km), tolte colonne durata; rimosso selettore mezzo (sempre auto)
+- 2026-06: Fix mobile: finestra suggerimenti indirizzi a tutta larghezza con testo a capo; pulsanti tappa spostati sulla riga dell'etichetta
 
 ## Backlog
 - P1: Ottimizzazione automatica dell'ordine delle tappe

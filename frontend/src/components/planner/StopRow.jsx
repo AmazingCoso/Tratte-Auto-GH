@@ -3,18 +3,16 @@ import { AddressInput } from "@/components/planner/AddressInput";
 import { GpsButton } from "@/components/planner/GpsButton";
 
 const iconBtn =
-  "w-8 sm:w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors";
+  "w-8 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors";
 
 export const StopRow = ({ marker, markerClass = "bg-white border-slate-200", label, value, onChange, placeholder, testid, index, total, onMove, onRemove }) => (
   <div className="relative z-10 focus-within:z-30 flex items-center gap-2">
     <div className={`shrink-0 w-10 h-10 rounded-full border flex items-center justify-center ${markerClass}`}>{marker}</div>
     <div className="flex-1 min-w-0">
-      <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1 pl-1">{label}</label>
-      <div className="flex items-center gap-2">
-        <AddressInput value={value} onChange={onChange} placeholder={placeholder} testid={testid} />
-        <GpsButton compact={!!onRemove} testid={testid.replace("input-", "btn-gps-")} onLocated={onChange} />
+      <div className="flex items-end justify-between gap-2 mb-1 pl-1">
+        <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">{label}</label>
         {onRemove && (
-          <div className="flex items-center">
+          <div className="flex items-center -my-1">
             <button type="button" className={iconBtn} disabled={index === 0} onClick={() => onMove(-1)} data-testid={`btn-move-up-waypoint-${index}`} aria-label="Sposta su">
               <ChevronUp className="w-4 h-4" />
             </button>
@@ -26,6 +24,10 @@ export const StopRow = ({ marker, markerClass = "bg-white border-slate-200", lab
             </button>
           </div>
         )}
+      </div>
+      <div className="flex items-center gap-2">
+        <AddressInput value={value} onChange={onChange} placeholder={placeholder} testid={testid} />
+        <GpsButton testid={testid.replace("input-", "btn-gps-")} onLocated={onChange} />
       </div>
     </div>
   </div>

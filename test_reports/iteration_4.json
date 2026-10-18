@@ -1,0 +1,24 @@
+{
+  "summary": "Iteration 4 (frontend only): retested the fix for address suggestions being cut off on mobile. At 390x844, the dropdowns for input-waypoint-0 ('via rizzoli bologna'), input-origin ('via del corso roma') and input-destination ('piazza san marco venezia') are positioned against the StopRow root. They run from the marker column to the card's right edge (left=33, right=357, width=324px), while the inputs are only 120-190px wide. Measured spans: scrollWidth<=clientWidth for all of them, so no text is cut off and there is no ellipsis. Long labels wrap onto 2 lines. No horizontal page overflow. elementFromPoint confirms the dropdown sits above the next row. Clicking suggestion-0 fills the input with the exact label and closes the dropdown. With the destination dropdown open, all 4 items stay above the fixed ActionBar (last item bottom 703 < bar top 720) and can still be clicked after scrolling. Desktop 1920: same behaviour, dropdown width 580px (full row), single-line labels, pick and close work. All features pass.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Mobile 390px waypoint row", "issues": ["The waypoint input is only ~120px wide (GPS + up/down/remove buttons take the rest), so a selected address shows as 'Via Francesc...' inside the input. This is acceptable, but a 2-line layout for the control buttons on mobile would make the chosen value easier to read (optional)."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "AddressInput's <ul absolute> now depends on the nearest positioned ancestor being StopRow's 'relative' root. This is an implicit coupling: if AddressInput is reused somewhere else without a relative parent, the dropdown will be positioned against an unexpected ancestor. Consider documenting it or passing in a container ref.",
+    "There is still no keyboard navigation (arrow keys/Enter) and no loading indicator for suggestions."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "100%"},
+  "test_credentials": "none (no auth)",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Suggestions come from Photon via /api/route/suggest (debounce 350ms). At 390px, check the dropdown width against the closest('.relative') StopRow root rect, and check truncation via span.scrollWidth > clientWidth. The ActionBar overlay from iteration 3 now looks fixed: the bar is on top and the dropdown items are not covered."
+}

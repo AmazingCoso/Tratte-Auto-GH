@@ -153,6 +153,7 @@ async def create_profile(data: ProfileInput):
     profile.id = str(res.inserted_id)
     if first:  # existing data from before profiles goes to the first profile
         await db.trips.update_many({"profile_id": None}, {"$set": {"profile_id": profile.id}})
+        await db.places.update_many({"profile_id": None}, {"$set": {"profile_id": profile.id}})
     return profile.model_dump()
 
 
@@ -171,6 +172,7 @@ async def delete_profile(profile_id: str):
     if res.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Profilo non trovato")
     await db.trips.delete_many({"profile_id": profile_id})
+    await db.places.delete_many({"profile_id": profile_id})
     return {"ok": True}
 
 
@@ -249,35 +251,36 @@ class PlaceInput(BaseModel):
 
 
 class Place(BaseDocument, PlaceInput):
+    profile_id: Optional[str] = None
     created_at: str = Field(default_factory=now_iso)
 
 
 @api_router.get("/places")
-async def list_places():
-    docs = await db.places.find().sort("name", 1).collation({"locale": "it"}).to_list(1000)
+async def list_places(pid: str = Depends(current_profile)):
+    docs = await db.places.find({"profile_id": pid}).sort("name", 1).collation({"locale": "it"}).to_list(1000)
     return [Place.from_mongo(d).model_dump() for d in docs]
 
 
 @api_router.post("/places")
-async def create_place(data: PlaceInput):
-    place = Place(name=data.name.strip(), address=data.address.strip())
+async def create_place(data: PlaceInput, pid: str = Depends(current_profile)):
+    place = Place(name=data.name, address=data.address, profile_id=pid)
     res = await db.places.insert_one(place.to_mongo())
     place.id = str(res.inserted_id)
     return place.model_dump()
 
 
 @api_router.put("/places/{place_id}")
-async def update_place(place_id: str, data: PlaceInput):
+async def update_place(place_id: str, data: PlaceInput, pid: str = Depends(current_profile)):
     oid = to_oid(place_id, "Luogo non trovato")
-    res = await db.places.update_one({"_id": oid}, {"$set": {"name": data.name.strip(), "address": data.address.strip()}})
+    res = await db.places.update_one({"_id": oid, "profile_id": pid}, {"$set": {"name": data.name, "address": data.address}})
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Luogo non trovato")
     return Place.from_mongo(await db.places.find_one({"_id": oid})).model_dump()
 
 
 @api_router.delete("/places/{place_id}")
-async def delete_place(place_id: str):
-    res = await db.places.delete_one({"_id": to_oid(place_id, "Luogo non trovato")})
+async def delete_place(place_id: str, pid: str = Depends(current_profile)):
+    res = await db.places.delete_one({"_id": to_oid(place_id, "Luogo non trovato"), "profile_id": pid})
     if res.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Luogo non trovato")
     return {"ok": True}

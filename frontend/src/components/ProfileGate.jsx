@@ -41,7 +41,7 @@ export const ProfileGate = () => {
           <Compass className="w-4 h-4 text-blue-600" /> Tratte Auto
         </div>
         <h1 className="font-heading text-4xl sm:text-5xl font-bold tracking-tight">Chi sei?</h1>
-        <p className="mt-2 text-sm sm:text-base text-slate-500">Scegli il tuo profilo: ognuno ha i suoi viaggi e il suo report mensile.</p>
+        <p className="mt-2 text-sm sm:text-base text-slate-500">Scegli il tuo profilo: ognuno ha i suoi viaggi, i suoi luoghi preferiti e il suo report mensile.</p>
 
         <div className="mt-8 bg-white border border-slate-200/80 shadow-sm rounded-2xl p-3 sm:p-4">
           {loading ? (

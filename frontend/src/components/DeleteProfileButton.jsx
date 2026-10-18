@@ -20,7 +20,7 @@ export const DeleteProfileButton = ({ profile, onConfirm }) => {
         <AlertDialogHeader>
           <AlertDialogTitle>Eliminare il profilo "{profile.name}"?</AlertDialogTitle>
           <AlertDialogDescription>
-            Verranno eliminati anche tutti i suoi viaggi salvati e non si potranno recuperare. Per confermare scrivi il nome del profilo.
+            Verranno eliminati anche tutti i suoi viaggi salvati e i suoi luoghi preferiti, e non si potranno recuperare. Per confermare scrivi il nome del profilo.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <input

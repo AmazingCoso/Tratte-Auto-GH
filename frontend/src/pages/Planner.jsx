@@ -105,14 +105,15 @@ export default function Planner() {
   };
 
   const short = (s) => s.split(",")[0].trim();
-  const autoSave = () =>
-    saveTrip(
-      currentTrip
-        ? { name: currentTrip.name, notes: currentTrip.notes }
-        : { name: `${short(route.origin)} → ${short(route.destination)}`.slice(0, 120), notes: "" },
+  const autoName = (o, d) => `${short(o)} → ${short(d)}`.slice(0, 120);
+  const autoSave = () => {
+    const keepName = currentTrip && currentTrip.name !== autoName(currentTrip.origin, currentTrip.destination);
+    return saveTrip(
+      { name: keepName ? currentTrip.name : autoName(route.origin, route.destination), notes: currentTrip?.notes || "" },
       false,
       true
     );
+  };
 
   const loadTrip = (trip) => {
     const next = {

@@ -1,0 +1,24 @@
+{
+  "summary": "Iteration 5 (frontend only, desktop 1920): tested auto-save on 'Calcola tratte'. All 6 scenarios pass. (1) New route Milano->Bologna: legs-result shown (211,2 km), toast 'Tratte calcolate e salvate in \"Milano → Bologna\"', new card with saved-trip-km badge 211,2 km, current-trip-label shows the name, saved-trips-count went 1->2, monthly report went 0->211,2 km / 1 leg. (2) Recalculating the current trip updates it: count and trip count unchanged, toast shown again (also checked with Milano->Roma: 4->4). (3) Loading 'Milano → Bologna', changing the destination to Firenze and recalculating updates the same id (name kept, destination=Firenze, 302,64 km), with no new card. (4) btn-reset-planner clears the label, and calculating Firenze->Roma creates a new trip (count 3, report 487,2 km / 2 legs). (5) 'xqzzqxnowhere123' gives the error toast 'Indirizzo non trovato: xqzzqxnowhere123', no trip saved, no legs-result. (6) Regression: manual save via modal 'Salva come nuovo' (TEST_manual) works with toast 'Viaggio salvato', and the monthly Excel downloads report_km_2026-10.xlsx.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Saved trips (UX)", "issues": ["The auto-generated name is not updated when a loaded trip's route changes. After editing 'Milano → Bologna' to go to Firenze, the card still says 'Milano → Bologna' but shows Milano → Firenze, which is misleading. Consider regenerating the name if it still matches the auto pattern 'X → Y'.", "Calcola tratte on a loaded trip silently overwrites it. This is the intended behaviour, but users may expect a new trip; the toast does name the trip, which helps."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Planner.autoSave: if currentTrip has a stale auto-name, the name is kept even when origin/destination change (see design note).",
+    "After reset, calculating the same route twice creates duplicate trips with the same name (e.g. two 'Milano → Roma'). This is by design, but there is no dedupe."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "100%"},
+  "test_credentials": "none (no auth)",
+  "seed_data_creation": "Created Milano → Bologna, Firenze → Roma, Milano → Roma, TEST_manual; all deleted afterwards. User trip 'Provaa tel' left untouched.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "The browser clock is 2026-10-18, so the report month defaults to 2026-10 (not 2026-01). Sonner toasts disappear after about 4s, so read [data-sonner-toast] right after the action. Calculate -> autoSave POSTs when there is no currentTrip, otherwise PUTs to the current trip."
+}

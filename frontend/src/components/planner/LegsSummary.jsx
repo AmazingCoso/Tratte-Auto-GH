@@ -4,7 +4,7 @@ import { Calculator, FileSpreadsheet, Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { apiError, cleanStops, downloadBlob, fmtKm, fmtMin, routeKey } from "@/lib/maps";
 
-export const LegsSummary = ({ route, update, result, setResult, tripName, validate }) => {
+export const LegsSummary = ({ route, update, result, setResult, onCalculated, tripName, validate }) => {
   const [busy, setBusy] = useState(null);
 
   const body = () => ({
@@ -28,6 +28,7 @@ export const LegsSummary = ({ route, update, result, setResult, tripName, valida
     try {
       const { data } = await api.post("/route/legs", body());
       setResult({ ...data, key });
+      await onCalculated();
     } catch (e) {
       toast.error(await apiError(e, "Calcolo delle tratte non riuscito"));
     } finally {

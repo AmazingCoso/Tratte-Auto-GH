@@ -87,7 +87,7 @@ export default function Planner() {
     leg_dates: route.legDates,
   });
 
-  const saveTrip = async (meta, asNew) => {
+  const saveTrip = async (meta, asNew, auto = false) => {
     try {
       const { data } = asNew || !currentTrip
         ? await api.post("/trips", payload(meta))
@@ -95,13 +95,24 @@ export default function Planner() {
       setCurrentTrip(data);
       if (data.legs) setLegsResult(legsFromTrip(data, route));
       setSaveOpen(false);
-      toast.success(asNew || !currentTrip ? "Viaggio salvato" : "Viaggio aggiornato");
+      if (auto) toast.success(`Tratte calcolate e salvate in "${data.name}"`);
+      else toast.success(asNew || !currentTrip ? "Viaggio salvato" : "Viaggio aggiornato");
       if (!data.legs) toast.warning("Distanze non calcolate: verifica gli indirizzi");
       fetchTrips(search.trim());
     } catch {
       toast.error("Salvataggio non riuscito");
     }
   };
+
+  const short = (s) => s.split(",")[0].trim();
+  const autoSave = () =>
+    saveTrip(
+      currentTrip
+        ? { name: currentTrip.name, notes: currentTrip.notes }
+        : { name: `${short(route.origin)} → ${short(route.destination)}`.slice(0, 120), notes: "" },
+      false,
+      true
+    );
 
   const loadTrip = (trip) => {
     const next = {
@@ -177,7 +188,7 @@ export default function Planner() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
           <section className="relative z-20 lg:z-auto lg:col-span-7 space-y-5 fade-up" style={{ animationDelay: "80ms" }}>
             <RouteForm route={route} update={update} />
-            <LegsSummary route={route} update={update} result={legsResult} setResult={setLegsResult} tripName={currentTrip?.name} validate={requireValid} />
+            <LegsSummary route={route} update={update} result={legsResult} setResult={setLegsResult} onCalculated={autoSave} tripName={currentTrip?.name} validate={requireValid} />
             <ActionBar onOpen={openMaps} onCopy={copyLink} onShare={share} onSave={openSave} isEditing={!!currentTrip} />
           </section>
           <aside className="lg:col-span-5 space-y-5 fade-up" style={{ animationDelay: "160ms" }}>

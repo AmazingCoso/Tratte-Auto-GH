@@ -40,6 +40,23 @@ export default function Planner() {
     return () => clearTimeout(t);
   }, [search, fetchTrips]);
 
+  useEffect(() => {
+    if (!currentTrip) return;
+    const same = currentTrip.date === route.date && JSON.stringify(currentTrip.leg_dates || []) === JSON.stringify(route.legDates);
+    if (same) return;
+    const t = setTimeout(async () => {
+      try {
+        const { data } = await api.patch(`/trips/${currentTrip.id}/dates`, { date: route.date, leg_dates: route.legDates });
+        setCurrentTrip(data);
+        toast.success("Data salvata");
+        fetchTrips(search.trim());
+      } catch {
+        toast.error("Salvataggio della data non riuscito");
+      }
+    }, 700);
+    return () => clearTimeout(t);
+  }, [route.date, route.legDates, currentTrip, fetchTrips, search]);
+
   const update = (patch) => setRoute((r) => ({ ...r, ...patch }));
   const isValid = route.origin.trim() && route.destination.trim();
 

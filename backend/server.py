@@ -50,13 +50,7 @@ def today_iso() -> str:
     return datetime.now(timezone.utc).date().isoformat()
 
 
-class TripInput(BaseModel):
-    name: str = Field(min_length=1, max_length=120)
-    notes: str = ""
-    origin: str = Field(min_length=1)
-    destination: str = Field(min_length=1)
-    waypoints: List[str] = []
-    mode: TravelMode = "driving"
+class TripDates(BaseModel):
     date: str = Field(default_factory=today_iso)
     leg_dates: List[str] = []
 
@@ -73,6 +67,15 @@ class TripInput(BaseModel):
             if d:
                 date.fromisoformat(d)
         return v
+
+
+class TripInput(TripDates):
+    name: str = Field(min_length=1, max_length=120)
+    notes: str = ""
+    origin: str = Field(min_length=1)
+    destination: str = Field(min_length=1)
+    waypoints: List[str] = []
+    mode: TravelMode = "driving"
 
 
 class Trip(BaseDocument, TripInput):
@@ -163,6 +166,15 @@ async def duplicate_trip(trip_id: str):
     res = await db.trips.insert_one(copy.to_mongo())
     copy.id = str(res.inserted_id)
     return serialize(copy)
+
+
+@api_router.patch("/trips/{trip_id}/dates")
+async def update_trip_dates(trip_id: str, data: TripDates):
+    oid = to_oid(trip_id)
+    res = await db.trips.update_one({"_id": oid}, {"$set": {**data.model_dump(), "updated_at": now_iso()}})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Viaggio non trovato")
+    return serialize(Trip.from_mongo(await db.trips.find_one({"_id": oid})))
 
 
 @api_router.delete("/trips/{trip_id}")

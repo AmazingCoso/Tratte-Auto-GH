@@ -1,0 +1,21 @@
+{
+  "summary": "Iteration 9 - standalone profiles: places are now per-profile. Backend: 77 passed, 1 skipped (test_real_profile_untouched: hardcoded REAL_ID no longer exists). Places require X-Profile-Id (400 missing / 404 unknown or malformed), are scoped (B can't list/PUT/DELETE A's place), and deleting a profile cascades to its trips and places (checked in the DB: 0 dangling docs). UI (1920x1080): A's favourite shows only in A's panel/popover; B sees the empty states, B's suggestions don't include A's place, and B's own favourite isn't shown in A. Calculating legs auto-saves to A (211,1 km, count 1, monthly report 211,1 km), while B shows 0 trips and a 0,0 km report. The delete-profile confirm button stays disabled until the name is typed (case-insensitive) and then deletes. First-profile orphan migration was checked by code review only, because 3 real profiles exist.",
+  "backend_issues": {"critical": [], "minor": [
+    {"endpoint": "POST /api/profiles", "issue": "The first-profile migration does count_documents()==0 and then insert, which is not atomic. Two concurrent first creations could both claim orphans (unlikely, low impact)."}
+  ]},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_places.py", "/app/backend/tests/test_profiles.py", "/app/backend/tests/conftest.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "FYI: the DB had 0 places and 0 trips BEFORE this testing run started (the 2 orphan places mentioned in the brief were already gone). Backend logs show earlier DELETE /api/places/6ad4e869156dc5a5ad20fe52 and /6ad4e824156dc5a5ad20fe51, which this run did not do. The user now has 3 real profiles (Lorenzo Vergoni, Matteo Pasqualini, Davide Cervetto), all untouched.",
+    "Optional: update REAL_ID in test_profiles.py::test_real_profile_untouched (it currently skips)"
+  ],
+  "critical_code_review_comments": [
+    "FavoritesProvider isn't keyed by profile. It works only because switching profiles goes through select(null), which unmounts it. Consider <FavoritesProvider key={current.id}> to make this robust if a direct A->B switch is ever added."
+  ],
+  "updated_files": ["/app/backend/tests/test_places.py", "/app/backend/tests/test_profiles.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "None kept. TEST_ profiles (pytest + TEST_UI_A/TEST_UI_B) were created and then deleted. Final DB: 3 real profiles, 0 places, 0 trips.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Run tests with: export REACT_APP_BACKEND_URL from frontend/.env, then pytest /app/backend/tests. test_places.py uses the conftest profile_id fixture. test_profiles.py has test_places_scoped_per_profile, test_places_header_required and test_delete_profile_deletes_its_places. Never delete the real profiles."
+}

@@ -1,4 +1,4 @@
-# Favourite places CRUD tests (/api/places)
+# Favourite places CRUD tests (/api/places), scoped to a TEST_ profile via X-Profile-Id
 import os
 import pytest
 import requests
@@ -8,8 +8,9 @@ API = f"{BASE_URL}/api/places"
 
 
 @pytest.fixture(scope="module")
-def s():
+def s(profile_id):
     sess = requests.Session()
+    sess.headers.update({"X-Profile-Id": profile_id})
     created = []
     sess.created = created
     yield sess

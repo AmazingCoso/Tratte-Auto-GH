@@ -1,0 +1,18 @@
+{
+  "summary": "Iteration 10 - regression check of the refactor (Planner hooks/PlannerHeader, nested-ternary cleanups, write_xlsx split into helpers). No behaviour changes found. Backend: the existing suite passed (77 passed, 1 skipped), and the new test_excel_structure.py passed 3/3. Both Excel files were opened with openpyxl and checked: headers, title/subtitle, TOTALE row with the SUM formulas and duration text, number and date formats, column widths and the filename. UI at 1920x1080 used a TEST_UI_refactor profile, which was deleted at the end. Checked: create profile (auto-selects it), header (app-title, profile name), empty trips state, calculate legs (auto-saves, label 'Stai modificando', 145,2 km badge, count 1, no PATCH sent after calculate), trip date and leg date changes ('Data salvata' toast, card refreshed to 7 mag 2031, values still there after reload), loading a trip sends no extra PATCH, search is debounced (1 GET for a 10-character typed string, 'Nessun viaggio trovato.' when nothing matches), duplicate, deleting the current trip clears current-trip-label and the button goes back to 'Salva', reset clears, validation toast, save dialog labels ('Salva viaggio' / 'Aggiorna'), place dialog labels ('Aggiungi' / 'Aggiorna'), switch profile goes back to the gate, and deleting a profile needs the typed name (case-insensitive). The profile-gate empty state was checked by code review only, because 3 real profiles exist.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_excel_structure.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Minor, not a regression: useDateAutoSave's effect depends on onSaved, which depends on refresh and so on search. Typing in search while a date debounce is pending resets the 700 ms timer. This is harmless.",
+    "Minor ordering change: deleteTrip now clears currentTrip after the refresh has been triggered instead of before it. No visible effect.",
+    "Date inputs still use the native type=date and not the shadcn calendar. This was already the case before and is unchanged."
+  ],
+  "updated_files": ["/app/backend/tests/test_excel_structure.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "None kept. TEST_pytest_profile and TEST_UI_refactor were created and then deleted. Final DB: 3 real profiles, 0 trips, 0 places.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Run: export REACT_APP_BACKEND_URL from frontend/.env, then python -m pytest /app/backend/tests (pytest.ini adds xdist -n). Never touch the real profiles Lorenzo Vergoni, Matteo Pasqualini and Davide Cervetto. A new browser context always opens on profile-gate (the profile is kept in localStorage key 'tratte-auto-profile')."
+}

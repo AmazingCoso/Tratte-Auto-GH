@@ -32,7 +32,7 @@ export const AddressInput = ({ value, onChange, placeholder, testid }) => {
   };
 
   return (
-    <div className="relative flex-1 min-w-0">
+    <div className="flex-1 min-w-0">
       <input
         type="text"
         value={value}
@@ -49,7 +49,7 @@ export const AddressInput = ({ value, onChange, placeholder, testid }) => {
         className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/60 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-colors"
       />
       {open && items.length > 0 && (
-        <ul className="absolute z-50 left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden" data-testid={`${testid}-suggestions`}>
+        <ul className="absolute z-50 left-0 right-0 mt-1.5 max-h-80 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-lg" data-testid={`${testid}-suggestions`}>
           {items.map((label, i) => (
             <li key={label}>
               <button
@@ -59,10 +59,10 @@ export const AddressInput = ({ value, onChange, placeholder, testid }) => {
                   pick(label);
                 }}
                 data-testid={`${testid}-suggestion-${i}`}
-                className="w-full flex items-start gap-2 px-3.5 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50"
+                className="w-full flex items-start gap-2 px-3.5 py-3 text-left text-sm leading-snug text-slate-700 hover:bg-slate-50 border-b border-slate-100 last:border-0"
               >
                 <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-slate-400" />
-                <span className="line-clamp-2">{label}</span>
+                <span className="break-words">{label}</span>
               </button>
             </li>
           ))}

@@ -185,6 +185,47 @@ async def delete_trip(trip_id: str):
     return {"ok": True}
 
 
+class PlaceInput(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+    address: str = Field(min_length=1, max_length=300)
+
+
+class Place(BaseDocument, PlaceInput):
+    created_at: str = Field(default_factory=now_iso)
+
+
+@api_router.get("/places")
+async def list_places():
+    docs = await db.places.find().sort("name", 1).collation({"locale": "it"}).to_list(1000)
+    return [Place.from_mongo(d).model_dump() for d in docs]
+
+
+@api_router.post("/places")
+async def create_place(data: PlaceInput):
+    place = Place(name=data.name.strip(), address=data.address.strip())
+    res = await db.places.insert_one(place.to_mongo())
+    place.id = str(res.inserted_id)
+    return place.model_dump()
+
+
+@api_router.put("/places/{place_id}")
+async def update_place(place_id: str, data: PlaceInput):
+    oid = to_oid(place_id)
+    res = await db.places.update_one({"_id": oid}, {"$set": {"name": data.name.strip(), "address": data.address.strip()}})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Luogo non trovato")
+    return Place.from_mongo(await db.places.find_one({"_id": oid})).model_dump()
+
+
+@api_router.delete("/places/{place_id}")
+async def delete_place(place_id: str):
+    res = await db.places.delete_one({"_id": to_oid(place_id)})
+    if res.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Luogo non trovato")
+    return {"ok": True}
+
+
+
 async def monthly_rows(month: str) -> list:
     if not re.fullmatch(r"\d{4}-\d{2}", month):
         raise HTTPException(status_code=422, detail="Mese non valido (AAAA-MM)")

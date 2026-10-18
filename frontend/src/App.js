@@ -1,11 +1,14 @@
 import "@/App.css";
 import { Toaster } from "@/components/ui/sonner";
 import Planner from "@/pages/Planner";
+import { FavoritesProvider } from "@/lib/favorites";
 
 function App() {
   return (
     <div className="App">
-      <Planner />
+      <FavoritesProvider>
+        <Planner />
+      </FavoritesProvider>
       <Toaster position="top-center" richColors />
     </div>
   );

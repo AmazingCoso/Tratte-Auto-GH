@@ -10,6 +10,7 @@ import { SaveTripDialog } from "@/components/planner/SaveTripDialog";
 import { SavedTrips } from "@/components/planner/SavedTrips";
 import { LegsSummary } from "@/components/planner/LegsSummary";
 import { MonthlyReport } from "@/components/planner/MonthlyReport";
+import { FavoritesPanel } from "@/components/planner/FavoritesPanel";
 
 const emptyRoute = () => ({ origin: "", destination: "", waypoints: [], mode: "driving", date: today(), legDates: [] });
 const legsFromTrip = (trip, route) =>
@@ -221,6 +222,7 @@ export default function Planner() {
               onDuplicate={duplicateTrip}
               onDelete={deleteTrip}
             />
+            <FavoritesPanel />
             <MonthlyReport version={trips} />
           </aside>
         </div>

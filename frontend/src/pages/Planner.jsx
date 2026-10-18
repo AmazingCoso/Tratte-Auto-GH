@@ -9,6 +9,7 @@ import { ActionBar } from "@/components/planner/ActionBar";
 import { MapPreview } from "@/components/planner/MapPreview";
 import { SaveTripDialog } from "@/components/planner/SaveTripDialog";
 import { SavedTrips } from "@/components/planner/SavedTrips";
+import { LegsSummary } from "@/components/planner/LegsSummary";
 
 const emptyRoute = { origin: "", destination: "", waypoints: [], mode: "driving" };
 
@@ -165,6 +166,7 @@ export default function Planner() {
           <section className="lg:col-span-7 space-y-5 fade-up" style={{ animationDelay: "80ms" }}>
             <RouteForm route={route} update={update} />
             <ModeSelector mode={route.mode} onChange={(mode) => update({ mode })} hasStops={route.waypoints.length > 0} />
+            <LegsSummary route={route} tripName={currentTrip?.name} validate={requireValid} />
             <ActionBar onOpen={openMaps} onCopy={copyLink} onShare={share} onSave={openSave} isEditing={!!currentTrip} />
           </section>
           <aside className="lg:col-span-5 space-y-5 fade-up" style={{ animationDelay: "160ms" }}>

@@ -1,29 +1,10 @@
-import { useState } from "react";
-import { toast } from "sonner";
-import { Crosshair, Flag, Loader2, Plus } from "lucide-react";
+import { Flag, Plus } from "lucide-react";
 import { newWaypoint } from "@/lib/maps";
 import { StopRow } from "@/components/planner/StopRow";
+import { GpsButton } from "@/components/planner/GpsButton";
 
 export const RouteForm = ({ route, update }) => {
-  const [locating, setLocating] = useState(false);
   const { waypoints } = route;
-
-  const getGPS = () => {
-    if (!navigator.geolocation) return toast.error("Geolocalizzazione non supportata.");
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        update({ origin: `${coords.latitude.toFixed(6)},${coords.longitude.toFixed(6)}` });
-        setLocating(false);
-        toast.success("Posizione GPS rilevata");
-      },
-      (err) => {
-        setLocating(false);
-        toast.error(`Errore GPS: ${err.message}`);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
-  };
 
   const setWp = (i, value) => update({ waypoints: waypoints.map((w, j) => (j === i ? { ...w, value } : w)) });
   const removeWp = (i) => update({ waypoints: waypoints.filter((_, j) => j !== i) });
@@ -32,19 +13,6 @@ export const RouteForm = ({ route, update }) => {
     [next[i], next[i + dir]] = [next[i + dir], next[i]];
     update({ waypoints: next });
   };
-
-  const gpsButton = (
-    <button
-      type="button"
-      onClick={getGPS}
-      disabled={locating}
-      data-testid="btn-gps-origin"
-      className="shrink-0 h-12 px-3.5 flex items-center gap-1.5 rounded-xl bg-blue-50 text-blue-700 text-sm font-semibold hover:bg-blue-100 disabled:opacity-60 transition-colors"
-    >
-      {locating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crosshair className="w-4 h-4" />}
-      <span>{locating ? "Rilevo…" : "GPS"}</span>
-    </button>
-  );
 
   return (
     <div className="bg-white border border-slate-200/80 shadow-sm rounded-2xl p-4 sm:p-6" data-testid="route-form">
@@ -55,9 +23,9 @@ export const RouteForm = ({ route, update }) => {
           label="Partenza"
           value={route.origin}
           onChange={(origin) => update({ origin })}
-          placeholder={locating ? "Rilevamento in corso…" : "Indirizzo o coordinate GPS"}
+          placeholder="Indirizzo o coordinate GPS"
           testid="input-origin"
-          trailing={gpsButton}
+          trailing={<GpsButton testid="btn-gps-origin" onLocated={(origin) => update({ origin })} />}
         />
         {waypoints.map((w, i) => (
           <StopRow
@@ -90,8 +58,9 @@ export const RouteForm = ({ route, update }) => {
           label="Destinazione finale"
           value={route.destination}
           onChange={(destination) => update({ destination })}
-          placeholder="Es. indirizzo di arrivo"
+          placeholder="Indirizzo o coordinate GPS"
           testid="input-destination"
+          trailing={<GpsButton testid="btn-gps-destination" onLocated={(destination) => update({ destination })} />}
         />
       </div>
     </div>

@@ -11,6 +11,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, BeforeValidator
 from typing import List, Optional, Literal, Annotated
 from datetime import datetime, timezone
+from routing import router as route_router
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -139,6 +140,7 @@ async def delete_trip(trip_id: str):
 
 
 app.include_router(api_router)
+app.include_router(route_router)
 
 app.add_middleware(
     CORSMiddleware,

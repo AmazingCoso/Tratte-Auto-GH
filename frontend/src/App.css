@@ -1,0 +1,37 @@
+.fade-up {
+  opacity: 0;
+  animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.stop-rail {
+  position: relative;
+}
+
+.stop-rail::before {
+  content: "";
+  position: absolute;
+  left: 19px;
+  top: 28px;
+  bottom: 28px;
+  border-left: 2px dashed #cbd5e1;
+  z-index: 0;
+}
+
+.grain {
+  background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+  background-size: 18px 18px;
+}

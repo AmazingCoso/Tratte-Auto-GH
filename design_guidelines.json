@@ -1,0 +1,105 @@
+{
+  "project_name": "Ruta - Pianificatore Viaggi Minimal",
+  "app_type": "mobile_web_app / single-page travel planner",
+  "language": "it",
+  "theme": "Chiaro e minimale (Light Minimalist Italian Design)",
+  "design_archetype": "Swiss & Tactile Minimalist",
+  "typography": {
+    "heading_font": "Outfit, sans-serif",
+    "body_font": "Inter, system-ui, sans-serif",
+    "mono_font": "JetBrains Mono, monospace",
+    "hierarchy": {
+      "h1": "text-3xl sm:text-4xl font-bold tracking-tight text-slate-900",
+      "h2": "text-xl sm:text-2xl font-semibold tracking-tight text-slate-900",
+      "h3": "text-lg font-medium text-slate-800",
+      "body": "text-base text-slate-600 leading-relaxed",
+      "small_label": "text-xs font-semibold tracking-wider uppercase text-slate-500"
+    }
+  },
+  "colors": {
+    "background": "#F8FAFC",
+    "surface": "#FFFFFF",
+    "surface_secondary": "#F1F5F9",
+    "border": "#E2E8F0",
+    "border_focus": "#0F172A",
+    "text_primary": "#0F172A",
+    "text_secondary": "#475569",
+    "text_muted": "#94A3B8",
+    "primary_accent": "#2563EB",
+    "primary_hover": "#1D4ED8",
+    "success_green": "#10B981",
+    "warning_amber": "#F59E0B",
+    "destructive_red": "#EF4444",
+    "transport_modes": {
+      "car": "#2563EB",
+      "walking": "#059669",
+      "biking": "#D97706",
+      "transit": "#7C3AED"
+    }
+  },
+  "visual_enhancers": {
+    "card_style": "bg-white border border-slate-200/80 shadow-sm rounded-2xl p-4 sm:p-5 transition-all hover:border-slate-300",
+    "floating_nav": "bg-white/90 backdrop-blur-md border border-slate-200/80 shadow-lg rounded-2xl",
+    "active_indicator": "bg-slate-900 text-white shadow-md rounded-xl",
+    "waypoint_connector_line": "border-l-2 border-dashed border-slate-300 ml-4 my-1"
+  },
+  "key_features": [
+    "Pianificatore percorso interattivo: Partenza (con GPS automatico 'Posizione attuale'), Tappe intermedie (aggiunta, rimozione, riordino Su/Giù), Destinazione",
+    "Selettore Mezzo di Trasporto: Auto (driving), A piedi (walking), In bici (bicycling), Mezzi pubblici (transit)",
+    "Pulsante primario d'azione 'Apri su Google Maps' con URL strutturato https://www.google.com/maps/dir/?api=1&origin=...&destination=...&waypoints=...",
+    "Funzioni 'Copia Link Percorso' e 'Condividi Via WhatsApp/Email/SMS'",
+    "Salvataggio viaggio con Nome, Note dettagliate e Data nel DB 'Viaggi Salvati'",
+    "Gestore Viaggi Salvati: Ricerca integrata, Carica nel planner, Modifica, Duplica ed Elimina",
+    "Interfaccia Mobile-First touch-friendly ottimizzata per l'uso in auto e in mobilità",
+    "Mappa interattiva integrata con marker del percorso e anteprima tappe"
+  ],
+  "layout_and_grids": {
+    "mobile_container": "max-w-md mx-auto min-h-screen pb-28 pt-4 px-4 sm:px-0 sm:max-w-2xl lg:max-w-5xl",
+    "grid_structure": "grid grid-cols-1 lg:grid-cols-12 gap-6",
+    "planner_column": "lg:col-span-6 space-y-5",
+    "map_and_saved_column": "lg:col-span-6 space-y-5"
+  },
+  "image_urls": {
+    "hero_scenic": "https://images.unsplash.com/photo-1780558143087-c60c284a3ccb?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzB8MHwxfHNlYXJjaHwzfHxzY2VuaWMlMjB0cmF2ZWwlMjByb2FkJTIwdHJpcCUyMHJvdXRlJTIwbGFuZHNjYXBlJTIwSXRhbHl8ZW58MHx8fHwxNzkyMzMyNTQyfDA&ixlib=rb-4.1.0&q=85",
+    "italian_road_sign": "https://images.unsplash.com/photo-1785845860877-7c77548f2680?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzB8MHwxfHNlYXJjaHw0fHxzY2VuaWMlMjB0cmF2ZWwlMjByb2FkJTIwdHJpcCUyMHJvdXRlJTIwbGFuZHNjYXBlJTIwSXRhbHl8ZW58MHx8fHwxNzkyMzMyNTQyfDA&ixlib=rb-4.1.0&q=85",
+    "dolomites_road": "https://images.unsplash.com/photo-1629014568959-f8260cbe6cd8?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzB8MHwxfHNlYXJjaHwxfHxzY2VuaWMlMjB0cmF2ZWwlMjByb2FkJTIwdHJpcCUyMHJvdXRlJTIwbGFuZHNjYXBlJTIwSXRhbHl8ZW58MHx8fHwxNzkyMzMyNTQyfDA&ixlib=rb-4.1.0&q=85"
+  },
+  "data_testid_conventions": {
+    "origin_input": "input-origin",
+    "gps_button": "btn-gps-origin",
+    "destination_input": "input-destination",
+    "add_waypoint_button": "btn-add-waypoint",
+    "waypoint_input": "input-waypoint-{index}",
+    "move_up_waypoint": "btn-move-up-waypoint-{index}",
+    "move_down_waypoint": "btn-move-down-waypoint-{index}",
+    "remove_waypoint": "btn-remove-waypoint-{index}",
+    "mode_car": "btn-mode-car",
+    "mode_walking": "btn-mode-walking",
+    "mode_biking": "btn-mode-biking",
+    "mode_transit": "btn-mode-transit",
+    "open_google_maps": "btn-open-google-maps",
+    "copy_route_link": "btn-copy-route-link",
+    "share_route": "btn-share-route",
+    "save_trip_modal_trigger": "btn-open-save-modal",
+    "save_trip_submit": "btn-submit-save-trip",
+    "search_saved_trips": "input-search-saved-trips",
+    "saved_trip_card": "card-saved-trip-{id}",
+    "load_saved_trip": "btn-load-saved-trip-{id}",
+    "delete_saved_trip": "btn-delete-saved-trip-{id}",
+    "duplicate_saved_trip": "btn-duplicate-saved-trip-{id}"
+  },
+  "instructions_to_main_agent": [
+    "Usa la lingua italiana per tutti i testi dell'interfaccia utente (UI).",
+    "Assicurati che tutti gli elementi interattivi abbiano data-testid conformi alla convenzione specificata.",
+    "Costruisci l'URL di Google Maps esattamente con la struttura https://www.google.com/maps/dir/?api=1&origin=...&destination=...&waypoints=... includendo le tappe intermedie separate da '|' e specificando travelmode=driving|walking|bicycling|transit.",
+    "Supporta il recupero della posizione GPS reale tramite navigator.geolocation.getCurrentPosition con fallback e feedback visivo chiaro per l'utente.",
+    "Fornisci una gestione locale immediata più sincronizzazione backend MongoDB per i viaggi salvati ('Viaggi Salvati').",
+    "Implementa scorciatoie mobile in basso (Sticky Bottom Mobile Action Bar) con grandi pulsanti d'azione da usare agevolmente con una sola mano o in auto.",
+    "Aggiungi notifiche Toast per ogni azione (Copia link, Salvataggio viaggio, Posizione GPS rilevata)."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "Main agent relies on provided design guidelines and data-testid tags.",
+    "Never use generic centered slop layouts; focus on mobile usability and tactile spacing.",
+    "All JS code must use Lucide icons, Sonner toasts, and Tailwind utility classes."
+  ]
+}

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Crosshair, Loader2 } from "lucide-react";
 
-export const GpsButton = ({ onLocated, testid }) => {
+export const GpsButton = ({ onLocated, testid, compact = false }) => {
   const [locating, setLocating] = useState(false);
 
   const getGPS = () => {
@@ -28,10 +28,11 @@ export const GpsButton = ({ onLocated, testid }) => {
       onClick={getGPS}
       disabled={locating}
       data-testid={testid}
-      className="shrink-0 h-12 px-3.5 flex items-center gap-1.5 rounded-xl bg-blue-50 text-blue-700 text-sm font-semibold hover:bg-blue-100 disabled:opacity-60 transition-colors"
+      aria-label="Usa posizione GPS"
+      className={`shrink-0 h-12 ${compact ? "w-11 sm:w-auto sm:px-3.5" : "px-3.5"} flex items-center justify-center gap-1.5 rounded-xl bg-blue-50 text-blue-700 text-sm font-semibold hover:bg-blue-100 disabled:opacity-60 transition-colors`}
     >
       {locating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crosshair className="w-4 h-4" />}
-      <span>{locating ? "Rilevo…" : "GPS"}</span>
+      <span className={compact ? "hidden sm:inline" : ""}>{locating ? "Rilevo…" : "GPS"}</span>
     </button>
   );
 };

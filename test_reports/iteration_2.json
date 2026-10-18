@@ -1,0 +1,28 @@
+{
+  "summary": "Iteration 2 re-tested after fixes. Backend: all 20 pytest tests pass (14 trips CRUD + 6 new routing/excel tests). Frontend: GPS button now on both origin and destination (both fill 'lat,lng' via mocked geolocation). LegsSummary works end-to-end: input-trip-date defaults to today, btn-calculate-legs returns leg-row-1 + total km/time (Milano->Firenze ~302.6 km / 3h18min), editing route shows legs-stale-warning, empty origin triggers toast error, btn-export-excel downloads 'tratte_YYYY-MM-DD.xlsx' with correct headers and SUM formulas. Mobile 390px regression: action bar is now pinned to viewport bottom (rect.bottom=844==winH; no transformed ancestor). .fade-up CSS now only animates opacity (fadeIn keyframes), so no containing block issue. Save/load/delete regression quick-check also works via existing APIs (CRUD tests cover persistence).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_trips.py",
+    "/app/backend/tests/test_routing.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "routing.py uses an in-process _geo_cache dict and _geo_lock (asyncio.Lock) + 1s sleep inside the lock to honor Nominatim's 1 req/s policy. OK for single-worker uvicorn, but if backend scales to multiple workers/pods the rate limit could be violated. Consider a shared cache (Redis) or external geocoder for production.",
+    "LegsSummary.body() recomputes JSON.stringify on every render for the stale-key — acceptable for current size but could be memoized.",
+    "Excel row order relies on hardcoded header row index 4 and legs starting at row 5; the SUM formula ranges are built off ws.max_row before appending the totals row (correct), but any future header addition will silently break the formula ranges. Add a constant for the data start row.",
+    "GpsButton error message surfaces raw browser error strings — acceptable, but a user-friendly mapping for PERMISSION_DENIED / POSITION_UNAVAILABLE / TIMEOUT would be nicer."
+  ],
+  "updated_files": ["/app/backend/tests/test_routing.py"],
+  "success_rate": {"backend": "100% (20/20)", "frontend": "100% (all tested flows pass incl. mobile fixed action bar)"},
+  "test_credentials": "none (no auth)",
+  "seed_data_creation": "Backend tests use TEST_ prefix with teardown fixture; cleanup verified (0 remaining TEST_ trips after run).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Routing tests use coord-only (fast path) + one real Nominatim call to Milano/Bologna/Firenze (cached server-side after first run). If you re-run, Nominatim calls take ~1-2s each due to rate-limiting sleep. Excel content verified via openpyxl (headers, title, TOTALE row, SUM formulas). Frontend playwright script in iteration_2 history mocks geolocation via context.set_geolocation + grant_permissions."
+}

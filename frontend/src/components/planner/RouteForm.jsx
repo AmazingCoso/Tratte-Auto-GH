@@ -36,6 +36,7 @@ export const RouteForm = ({ route, update }) => {
             onChange={(v) => setWp(i, v)}
             placeholder="Indirizzo tappa"
             testid={`input-waypoint-${i}`}
+            trailing={<GpsButton compact testid={`btn-gps-waypoint-${i}`} onLocated={(v) => setWp(i, v)} />}
             index={i}
             total={waypoints.length}
             onMove={(dir) => moveWp(i, dir)}

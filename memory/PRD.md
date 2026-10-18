@@ -1,0 +1,20 @@
+# PRD - Pianificatore Viaggio (Ruta)
+
+## Problema originale
+Inizialmente era stato chiesto un CRM vendite, poi l'utente ha incollato un HTML "Pianificatore Viaggio" e ha scelto: trasformarlo in un'app completa. Nessun login, stile chiaro e minimale, UI in italiano.
+
+## Architettura
+- Frontend React (pages/Planner.jsx, components/planner/*), Tailwind, sonner
+- Backend FastAPI: server.py (CRUD /api/trips), routing.py (/api/route/legs, /api/route/excel)
+- MongoDB collezione `trips`
+- Servizi esterni gratuiti senza chiave: Nominatim (geocodifica), routing.openstreetmap.de (OSRM car/foot/bike), embed Google Maps per l'anteprima
+
+## Implementato
+- 2026-06: Partenza/tappe/destinazione, riordino tappe, mezzo di trasporto, apertura su Google Maps, copia/condividi link, anteprima mappa, viaggi salvati (salva/aggiorna/salva come nuovo/carica/duplica/elimina/cerca), barra azioni fissa su mobile
+- 2026-06: GPS anche sulla destinazione; calcolo distanza/durata per tratta + totale; esportazione Excel (N°, Data, Partenza, Arrivo, km, min, Durata, riga TOTALE)
+- 2026-06: GPS su ogni tappa intermedia
+
+## Backlog
+- P1: Data per singola tratta (attualmente una data per tutto il viaggio)
+- P1: Salvare distanze calcolate insieme al viaggio; report mensile km in Excel
+- P2: Autocompletamento indirizzi; ottimizzazione ordine tappe

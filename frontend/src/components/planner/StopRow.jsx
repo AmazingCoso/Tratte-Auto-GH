@@ -1,7 +1,7 @@
 import { ChevronDown, ChevronUp, X } from "lucide-react";
 
 const iconBtn =
-  "w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors";
+  "w-8 sm:w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors";
 
 export const StopRow = ({ marker, markerClass = "bg-white border-slate-200", label, value, onChange, placeholder, testid, trailing, index, total, onMove, onRemove }) => (
   <div className="relative z-10 flex items-center gap-2">

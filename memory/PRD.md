@@ -13,8 +13,8 @@ Inizialmente era stato chiesto un CRM vendite, poi l'utente ha incollato un HTML
 - 2026-06: Partenza/tappe/destinazione, riordino tappe, mezzo di trasporto, apertura su Google Maps, copia/condividi link, anteprima mappa, viaggi salvati (salva/aggiorna/salva come nuovo/carica/duplica/elimina/cerca), barra azioni fissa su mobile
 - 2026-06: GPS anche sulla destinazione; calcolo distanza/durata per tratta + totale; esportazione Excel (N°, Data, Partenza, Arrivo, km, min, Durata, riga TOTALE)
 - 2026-06: GPS su ogni tappa intermedia
+- 2026-06: Data per singola tratta (Excel), distanze salvate con ogni viaggio (badge km nell'elenco), report km mensile (riepilogo + Excel), suggerimenti indirizzi mentre si scrive (Photon), pulsante GPS integrato in ogni riga
 
 ## Backlog
-- P1: Data per singola tratta (attualmente una data per tutto il viaggio)
-- P1: Salvare distanze calcolate insieme al viaggio; report mensile km in Excel
-- P2: Autocompletamento indirizzi; ottimizzazione ordine tappe
+- P1: Ottimizzazione automatica dell'ordine delle tappe
+- P2: Rimborso chilometrico (€/km) nel report mensile; esportazione PDF

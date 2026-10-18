@@ -8,9 +8,9 @@ import os
 import re
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict, BeforeValidator
+from pydantic import BaseModel, Field, ConfigDict, BeforeValidator, field_validator
 from typing import List, Optional, Literal, Annotated
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from routing import router as route_router, compute_legs, write_xlsx, fmt_duration, RouteInput
 import httpx
 
@@ -57,8 +57,22 @@ class TripInput(BaseModel):
     destination: str = Field(min_length=1)
     waypoints: List[str] = []
     mode: TravelMode = "driving"
-    date: str = Field(default_factory=today_iso, pattern=r"^\d{4}-\d{2}-\d{2}$")
+    date: str = Field(default_factory=today_iso)
     leg_dates: List[str] = []
+
+    @field_validator("date")
+    @classmethod
+    def valid_date(cls, v: str) -> str:
+        date.fromisoformat(v)
+        return v
+
+    @field_validator("leg_dates")
+    @classmethod
+    def valid_leg_dates(cls, v: List[str]) -> List[str]:
+        for d in v:
+            if d:
+                date.fromisoformat(d)
+        return v
 
 
 class Trip(BaseDocument, TripInput):

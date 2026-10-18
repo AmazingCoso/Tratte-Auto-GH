@@ -1,0 +1,35 @@
+{
+  "summary": "Iteration 3: tested the 4 new features plus GPS buttons. Backend: 34/34 pytest pass (20 old + 14 new in test_iter3_features.py), covering /route/suggest (q<3 -> []; strings returned), per-leg dates in /route/excel, trips storing date/leg_dates/legs/total_km/total_min (create, update, duplicate), unresolvable address -> legs null, invalid date -> 422, monthly report split by leg date, month=bad -> 422, and monthly Excel headers/TOTALE/SUM. Frontend (1920px): the GPS buttons for origin, waypoint-0 and destination each fill 'lat,lng'. Suggestions show for all 3 inputs; the dropdown sits on top of the next row (elementFromPoint confirmed) and closes after a pick. Leg dates default to the trip date; changing leg 2 keeps leg 1 unchanged, and the Excel payload sends leg_dates correctly. Save shows the 320,1 km badge and the trip date on the card. The monthly report splits correctly by leg date (Oct: 211,2 km / 1 leg; Nov: 108,9 km / 1 leg) and downloads report_km_2026-11.xlsx. Loading a trip restores the date, the leg dates and a non-stale legs-result. Duplicate copies km, the Maps URL is correct and the page has no horizontal overflow at 390px. ONE REGRESSION FOUND: on mobile the fixed action bar is covered by the right-hand column (map/saved trips/monthly report).",
+  "backend_issues": {"critical": [], "minor": [
+    {"endpoint": "POST/PUT /api/trips", "issue": "leg_dates is List[str] with no date-format check; a value like '2026-01-99' is accepted and later makes /api/reports/monthly/excel return 500 (datetime.fromisoformat). Use List[date] or a pattern check."}
+  ]},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "ActionBar (mobile <lg)", "issue": "The fixed bottom action bar (z-40) is painted UNDER the <aside> (MapPreview iframe, SavedTrips, MonthlyReport) while those scroll past it. At 390px with scrollY=400/800/1100, elementFromPoint at the btn-open-google-maps center returns map-preview-iframe / saved trip card / monthly-report, so the button cannot be clicked. RCA: .fade-up uses 'animation: fadeIn ... both' on opacity, which makes <section> and <aside> stacking contexts. The ActionBar's z-40 only applies inside <section>, and <aside> comes later in the DOM so it paints on top. Fix: move <ActionBar> out of the .fade-up section (render it as a sibling at the root of Planner), OR add 'relative z-20 lg:z-auto' to the <section>, OR remove fill-mode 'both' from .fade-up.", "selector": "[data-testid='btn-open-google-maps']", "priority": "HIGH"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "MonthlyReport at 390px", "issues": ["report-total-time is cut off ('4 h 41 ...') in the 3-column grid; use a smaller font or a 2-row layout on mobile"]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_iter3_features.py", "/app/backend/tests/test_trips.py", "/app/backend/tests/test_routing.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "HIGH: Fix mobile ActionBar being covered by the aside column (stacking context created by .fade-up animation fill-mode 'both'). Move ActionBar outside the animated section or give the section a higher z-index on mobile.",
+    "Validate the leg_dates format in TripInput (List[date] or a regex) to prevent a 500 in the monthly Excel export",
+    "Optional: when a waypoint is removed or reordered, route.legDates is not reindexed, so custom leg dates can end up on the wrong leg"
+  ],
+  "critical_code_review_comments": [
+    "RouteForm removeWp/moveWp do not adjust route.legDates, so per-leg dates can go out of sync with the legs after the route is edited.",
+    "monthly_rows loads every trip with legs (to_list(2000)) and filters in Python. Fine for an MVP; for scale, filter by date/leg_dates in Mongo.",
+    "Duplicated trips are counted again in the monthly report (expected by design, but users may be surprised).",
+    "AddressInput has no keyboard navigation (arrow keys/Enter) for suggestions and no loading state."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter3_features.py"],
+  "success_rate": {"backend": "100% (34/34)", "frontend": "~92% (all feature flows pass; mobile action bar is covered while scrolling)"},
+  "test_credentials": "none (no auth)",
+  "seed_data_creation": "TEST_ trips were created and then deleted; only the user's trip 'prova' remains.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend tests use coordinate stops (fast) and months 2031-03/2031-04 for isolation. To check the mobile fix: at 390x844 with Milano/Firenze entered, scroll to y=400, 800 and 1100 and confirm that elementFromPoint at the btn-open-google-maps center returns that button. Geolocation is mocked via context.grant_permissions + set_geolocation.",
+  "rca of the issue": "Mobile ActionBar is covered: Planner.jsx puts <ActionBar> (position:fixed; z-40) inside <section class='fade-up'>. App.css .fade-up = 'animation: fadeIn 0.5s ... both' (opacity), and a filled opacity animation creates a stacking context. The fixed bar's z-index therefore only applies inside the section; the sibling <aside class='fade-up'> comes later in the DOM and paints over it. Reproduce at 390px by scrolling so that the map or saved trips pass behind the bar."
+}

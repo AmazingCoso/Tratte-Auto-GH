@@ -43,7 +43,7 @@ export const MonthlyReport = ({ version }) => {
         ].map(([label, val, tid]) => (
           <div key={tid} className="rounded-xl bg-slate-50 px-3 py-2.5">
             <div className="text-[11px] uppercase tracking-wider text-slate-400">{label}</div>
-            <div className="font-heading text-lg font-semibold text-slate-900 truncate" data-testid={tid}>{val}</div>
+            <div className="font-heading text-sm sm:text-lg font-semibold text-slate-900 truncate" data-testid={tid}>{val}</div>
           </div>
         ))}
       </div>

@@ -6,11 +6,11 @@ export const RouteForm = ({ route, update }) => {
   const { waypoints } = route;
 
   const setWp = (i, value) => update({ waypoints: waypoints.map((w, j) => (j === i ? { ...w, value } : w)) });
-  const removeWp = (i) => update({ waypoints: waypoints.filter((_, j) => j !== i) });
+  const removeWp = (i) => update({ waypoints: waypoints.filter((_, j) => j !== i), legDates: [] });
   const moveWp = (i, dir) => {
     const next = [...waypoints];
     [next[i], next[i + dir]] = [next[i + dir], next[i]];
-    update({ waypoints: next });
+    update({ waypoints: next, legDates: [] });
   };
 
   return (
@@ -43,7 +43,7 @@ export const RouteForm = ({ route, update }) => {
         <div className="pl-12">
           <button
             type="button"
-            onClick={() => update({ waypoints: [...waypoints, newWaypoint()] })}
+            onClick={() => update({ waypoints: [...waypoints, newWaypoint()], legDates: [] })}
             data-testid="btn-add-waypoint"
             className="w-full h-11 flex items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 text-sm font-medium text-slate-600 hover:border-blue-400 hover:text-blue-700 hover:bg-blue-50/50 transition-colors"
           >

@@ -176,7 +176,7 @@ export default function Planner() {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-          <section className="lg:col-span-7 space-y-5 fade-up" style={{ animationDelay: "80ms" }}>
+          <section className="relative z-20 lg:z-auto lg:col-span-7 space-y-5 fade-up" style={{ animationDelay: "80ms" }}>
             <RouteForm route={route} update={update} />
             <ModeSelector mode={route.mode} onChange={(mode) => update({ mode })} hasStops={route.waypoints.length > 0} />
             <LegsSummary route={route} update={update} result={legsResult} setResult={setLegsResult} tripName={currentTrip?.name} validate={requireValid} />

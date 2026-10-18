@@ -140,9 +140,9 @@ def test_monthly_excel_content(s, trip):
     assert r.status_code == 200
     assert 'report_km_2031-03.xlsx' in r.headers.get("content-disposition", "")
     ws = wb_from(r)
-    assert [c.value for c in ws[4]] == ["Data", "Viaggio", "Partenza", "Arrivo", "Distanza (km)", "Durata (min)", "Durata"]
+    assert [c.value for c in ws[4]] == ["Data", "Viaggio", "Percorso", "Distanza (km)"]
     assert ws.cell(5, 2).value == "TEST_iter3"
     assert ws.cell(5, 1).value.strftime("%Y-%m-%d") == "2031-03-10"
     last = ws.max_row
-    assert ws.cell(last, 4).value == "TOTALE"
-    assert str(ws.cell(last, 5).value).startswith("=SUM(E5:E")
+    assert ws.cell(last, 3).value == "TOTALE"
+    assert str(ws.cell(last, 4).value).startswith("=SUM(D5:D")

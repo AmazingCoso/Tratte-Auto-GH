@@ -186,6 +186,7 @@ async def delete_trip(trip_id: str):
 
 
 class PlaceInput(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
     name: str = Field(min_length=1, max_length=80)
     address: str = Field(min_length=1, max_length=300)
 

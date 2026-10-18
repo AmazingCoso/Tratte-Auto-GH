@@ -1,0 +1,38 @@
+{
+  "summary": "Iteration 7 tested Luoghi preferiti (favourite places) on backend and frontend (desktop 1920 and mobile 390). Backend: test_places.py has 12 tests, all passing after one fix. Bug found and fixed: whitespace-only name/address passed min_length before .strip(). POST returned 500. PUT returned 500 but first wrote name='' to Mongo, after which GET /api/places returned 500 permanently and broke the whole favourites feature (reproduced, then cleaned up). Fix: ConfigDict(str_strip_whitespace=True) on PlaceInput; both now return 422. Verified: GET sorted by name (case-insensitive), POST trims fields, 422 on empty/missing fields, PUT + GET persistence, PUT/DELETE 404 on unknown and invalid ids. UI: favorites-empty shown when there are no places. The empty popover shows the helpful message. Submit is disabled while fields are empty. The dialog's address suggestions and GPS button work. Add, edit (fields prefilled) and delete all work. btn-fav-origin, btn-fav-destination and btn-fav-waypoint-0 popovers list favourites; clicking one fills the input and closes the popover. Typing 'TEST_Cli' in input-origin shows the favourite first with a star and bold name; clicking it fills the address. Route Milano -> Piazza Maggiore, Bologna (via favourites) -> Firenze with btn-calculate-legs auto-saved the trip (1 POST), 2 legs, 322.9 km. Mobile 390: scrollWidth=390, no overflow; label row controls stay in the viewport; popover is 0-320px; the dialog is usable. No console errors.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "POST/PUT /api/places", "issue": "FIXED by testing agent: a whitespace-only name/address caused a 500. PUT persisted an empty name, after which GET /api/places returned 500 for every request.", "priority": "HIGH"}
+    ],
+    "minor": [
+      {"endpoint": "GET /api/report/monthly (test_iter3_features.py::test_monthly_excel_content)", "issue": "Pre-existing failure, not related to this feature (also failing in iteration 6). The test expects headers without 'N°' but LEG_HEADERS now differ. Either the old test needs updating or the monthly sheet headers changed."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "PlaceDialog address field", "issue": "While input-place-address is focused, the suggestion dropdown (absolute, z-50) covers btn-submit-place and runs past the bottom of the dialog. A user who types an address and goes straight to 'Aggiungi' clicks a suggestion instead. They must pick a suggestion or click elsewhere first.", "selector": "[data-testid='input-place-address-suggestions']", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Mobile 390", "issues": ["The favourites popover sits flush against the left edge (x=0) with no gutter", "The place dialog is full-width (0-390) with no side margin"]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_places.py", "/app/test_reports/pytest/pytest_places.xml"],
+  "action_items": [
+    "Stop the PlaceDialog address suggestion dropdown from covering the submit button (e.g. render it inside a scroll-limited container, give it a smaller max-height in the dialog, or close it on Enter/submit)",
+    "Optional: add a horizontal gutter to the popover and dialog on mobile",
+    "Update the stale test test_monthly_excel_content or check the monthly Excel headers"
+  ],
+  "critical_code_review_comments": [
+    "Fixed: PlaceInput lacked whitespace stripping before validation, so bad data could be persisted and break list_places",
+    "AddressInput option keys use the label; two favourites with the same address give duplicate React keys",
+    "FavoritesProvider save/remove call reload() after every change, which costs an extra GET (acceptable)",
+    "Note: the trip 'Provaa tel' did not exist when this iteration started; only '44.145050 → 44.145050' was present (created 15:27, before testing). It was not deleted by this agent."
+  ],
+  "updated_files": ["/app/backend/server.py", "/app/backend/tests/test_places.py"],
+  "success_rate": {"backend": "100% (places, after fix)", "frontend": "95%"},
+  "seed_data_creation": "None. All TEST_ places and the 'Milano → Firenze' test trip were deleted.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Places use ObjectId ids; place-item-{id}. The dialog's address suggestion list overlaps the submit button, so pick suggestion-0 or click input-place-name before clicking btn-submit-place. The browser clock is 2026-10-18."
+}

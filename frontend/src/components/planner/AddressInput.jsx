@@ -3,7 +3,7 @@ import { MapPin, Star } from "lucide-react";
 import { api } from "@/lib/api";
 import { matchFavorites, useFavorites } from "@/lib/favorites";
 
-export const AddressInput = ({ value, onChange, placeholder, testid }) => {
+export const AddressInput = ({ value, onChange, placeholder, testid, inline = false }) => {
   const [items, setItems] = useState([]);
   const [open, setOpen] = useState(false);
   const typed = useRef(false);
@@ -56,7 +56,7 @@ export const AddressInput = ({ value, onChange, placeholder, testid }) => {
         className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50/60 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-colors"
       />
       {open && options.length > 0 && (
-        <ul className="absolute z-50 left-0 right-0 mt-1.5 max-h-80 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-lg" data-testid={`${testid}-suggestions`}>
+        <ul className={`${inline ? "relative max-h-48" : "absolute z-50 left-0 right-0 max-h-80"} mt-1.5 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-lg`} data-testid={`${testid}-suggestions`}>
           {options.map(({ label, title, fav }, i) => (
             <li key={`${fav ? "f" : "s"}-${label}`}>
               <button

@@ -37,7 +37,7 @@ export const PlaceDialog = ({ open, onOpenChange, place }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="rounded-2xl sm:max-w-md" data-testid="place-dialog">
+      <DialogContent className="w-[calc(100%-2rem)] rounded-2xl sm:max-w-md" data-testid="place-dialog">
         <DialogHeader>
           <DialogTitle className="font-heading text-2xl">{place ? "Modifica luogo" : "Nuovo luogo preferito"}</DialogTitle>
           <DialogDescription>Dai un nome al luogo e indica il suo indirizzo.</DialogDescription>
@@ -49,8 +49,8 @@ export const PlaceDialog = ({ open, onOpenChange, place }) => {
           </div>
           <div className="space-y-1.5">
             <Label>Indirizzo</Label>
-            <div className="relative flex items-center gap-2">
-              <AddressInput value={address} onChange={setAddress} placeholder="Indirizzo o coordinate GPS" testid="input-place-address" />
+            <div className="flex items-start gap-2">
+              <AddressInput inline value={address} onChange={setAddress} placeholder="Indirizzo o coordinate GPS" testid="input-place-address" />
               <GpsButton testid="btn-gps-place" onLocated={setAddress} />
             </div>
           </div>

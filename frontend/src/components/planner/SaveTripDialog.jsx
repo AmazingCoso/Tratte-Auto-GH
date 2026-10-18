@@ -25,7 +25,7 @@ export const SaveTripDialog = ({ open, onOpenChange, currentTrip, onSave }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="rounded-2xl sm:max-w-md" data-testid="save-trip-dialog">
+      <DialogContent className="w-[calc(100%-2rem)] rounded-2xl sm:max-w-md" data-testid="save-trip-dialog">
         <DialogHeader>
           <DialogTitle className="font-heading text-2xl">{currentTrip ? "Aggiorna viaggio" : "Salva viaggio"}</DialogTitle>
           <DialogDescription>Dai un nome al percorso e aggiungi note utili.</DialogDescription>

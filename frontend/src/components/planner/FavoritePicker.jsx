@@ -16,7 +16,7 @@ export const FavoritePicker = ({ onPick, testid }) => {
           <Star className="w-3.5 h-3.5" /> Preferiti
         </button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-[min(320px,calc(100vw-32px))] p-2 rounded-xl" data-testid={`${testid}-list`}>
+      <PopoverContent align="end" collisionPadding={16} className="w-[min(320px,calc(100vw-32px))] p-2 rounded-xl" data-testid={`${testid}-list`}>
         {places.length === 0 ? (
           <p className="p-3 text-sm text-slate-500">Nessun luogo preferito. Aggiungili dal riquadro "Luoghi preferiti".</p>
         ) : (

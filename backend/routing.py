@@ -30,6 +30,7 @@ class RouteInput(BaseModel):
 
 class ExcelInput(RouteInput):
     date: Date
+    leg_dates: List[Date] = []
     name: Optional[str] = None
 
 
@@ -93,53 +94,91 @@ async def route_legs(data: RouteInput):
     return await compute_legs(data)
 
 
-@router.post("/excel")
-async def route_excel(data: ExcelInput):
-    result = await compute_legs(data)
+LEG_HEADERS = ["N°", "Data", "Partenza", "Arrivo", "Distanza (km)", "Durata (min)", "Durata"]
+
+
+def write_xlsx(title: str, subtitle: str, headers: list, rows: list, total_min: float, filename: str):
+    """rows must end with (..., km, min, durata) columns; TOTALE row sums the km/min columns."""
     wb = Workbook()
     ws = wb.active
     ws.title = "Tratte"
-    bold = Font(bold=True)
-    head_fill = PatternFill("solid", fgColor="0F172A")
     thin = Side(style="thin", color="E2E8F0")
-
-    ws["A1"] = data.name or "Viaggio"
+    ws["A1"] = title
     ws["A1"].font = Font(bold=True, size=14)
-    ws["A2"] = f"Mezzo: {MODE_LABELS[data.mode]}"
-
-    headers = ["N°", "Data", "Partenza", "Arrivo", "Distanza (km)", "Durata (min)", "Durata"]
+    ws["A2"] = subtitle
     ws.append([])
     ws.append(headers)
     for cell in ws[4]:
         cell.font = Font(bold=True, color="FFFFFF")
-        cell.fill = head_fill
+        cell.fill = PatternFill("solid", fgColor="0F172A")
         cell.alignment = Alignment(horizontal="center")
+    for r in rows:
+        ws.append(list(r))
 
-    for leg in result["legs"]:
-        ws.append([leg["index"], data.date, leg["from"], leg["to"], leg["distance_km"], leg["duration_min"], fmt_duration(leg["duration_min"])])
-
-    last = ws.max_row
-    ws.append(["", "", "", "TOTALE", f"=SUM(E5:E{last})", f"=SUM(F5:F{last})", fmt_duration(result["total_min"])])
+    n = len(headers)
+    km_col, min_col = ws.cell(4, n - 2).column_letter, ws.cell(4, n - 1).column_letter
+    last = max(ws.max_row, 5)
+    total = [""] * n
+    total[n - 4] = "TOTALE"
+    total[n - 3] = f"=SUM({km_col}5:{km_col}{last})"
+    total[n - 2] = f"=SUM({min_col}5:{min_col}{last})"
+    total[n - 1] = fmt_duration(total_min)
+    ws.append(total)
     for cell in ws[ws.max_row]:
-        cell.font = bold
+        cell.font = Font(bold=True)
         cell.fill = PatternFill("solid", fgColor="F1F5F9")
 
     for row in ws.iter_rows(min_row=4, max_row=ws.max_row):
         for cell in row:
             cell.border = Border(top=thin, bottom=thin, left=thin, right=thin)
-        row[1].number_format = "DD/MM/YYYY"
-        row[4].number_format = "0.00"
-        row[5].number_format = "0.0"
+            if isinstance(cell.value, Date):
+                cell.number_format = "DD/MM/YYYY"
+        row[n - 3].number_format = "0.00"
+        row[n - 2].number_format = "0.0"
 
-    for col, width in zip("ABCDEFG", [6, 12, 36, 36, 15, 14, 14]):
-        ws.column_dimensions[col].width = width
+    for i in range(1, n + 1):
+        h = headers[i - 1]
+        ws.column_dimensions[ws.cell(4, i).column_letter].width = 36 if h in ("Partenza", "Arrivo", "Viaggio") else max(8, len(h) + 4)
 
     buf = io.BytesIO()
     wb.save(buf)
     buf.seek(0)
-    filename = f"tratte_{data.date.isoformat()}.xlsx"
     return StreamingResponse(
         buf,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/suggest")
+async def suggest(q: str):
+    if len(q.strip()) < 3:
+        return []
+    async with httpx.AsyncClient(headers=UA, timeout=8) as client:
+        r = await client.get("https://photon.komoot.io/api/", params={"q": q, "limit": 5, "lat": 42.5, "lon": 12.5})
+    if r.status_code != 200:
+        return []
+    out = []
+    for f in r.json().get("features", []):
+        p = f["properties"]
+        street = " ".join(x for x in [p.get("street"), p.get("housenumber")] if x)
+        city = " ".join(x for x in [p.get("postcode"), p.get("city") or p.get("county")] if x)
+        parts = [p.get("name"), street, city, p.get("country")]
+        label = ", ".join(dict.fromkeys(x for x in parts if x))
+        if label and label not in out:
+            out.append(label)
+    return out
+
+
+@router.post("/excel")
+async def route_excel(data: ExcelInput):
+    result = await compute_legs(data)
+    rows = [
+        [l["index"], data.leg_dates[i] if i < len(data.leg_dates) else data.date, l["from"], l["to"],
+         l["distance_km"], l["duration_min"], fmt_duration(l["duration_min"])]
+        for i, l in enumerate(result["legs"])
+    ]
+    return write_xlsx(
+        data.name or "Viaggio", f"Mezzo: {MODE_LABELS[data.mode]}", LEG_HEADERS, rows,
+        result["total_min"], f"tratte_{data.date.isoformat()}.xlsx",
     )

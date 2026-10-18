@@ -11,7 +11,8 @@ from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, BeforeValidator
 from typing import List, Optional, Literal, Annotated
 from datetime import datetime, timezone
-from routing import router as route_router
+from routing import router as route_router, compute_legs, write_xlsx, fmt_duration, RouteInput
+import httpx
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -45,6 +46,10 @@ class BaseDocument(BaseModel):
         return data
 
 
+def today_iso() -> str:
+    return datetime.now(timezone.utc).date().isoformat()
+
+
 class TripInput(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     notes: str = ""
@@ -52,11 +57,24 @@ class TripInput(BaseModel):
     destination: str = Field(min_length=1)
     waypoints: List[str] = []
     mode: TravelMode = "driving"
+    date: str = Field(default_factory=today_iso, pattern=r"^\d{4}-\d{2}-\d{2}$")
+    leg_dates: List[str] = []
 
 
 class Trip(BaseDocument, TripInput):
+    legs: Optional[list] = None
+    total_km: Optional[float] = None
+    total_min: Optional[float] = None
     created_at: str = Field(default_factory=now_iso)
     updated_at: str = Field(default_factory=now_iso)
+
+
+async def legs_for(d: dict) -> dict:
+    try:
+        r = await compute_legs(RouteInput(**{k: d[k] for k in ("origin", "destination", "waypoints", "mode")}))
+        return {"legs": r["legs"], "total_km": r["total_km"], "total_min": r["total_min"]}
+    except (HTTPException, httpx.HTTPError, ValueError):
+        return {"legs": None, "total_km": None, "total_min": None}
 
 
 def serialize(trip: Trip) -> dict:
@@ -102,7 +120,8 @@ async def get_trip(trip_id: str):
 
 @api_router.post("/trips")
 async def create_trip(data: TripInput):
-    trip = Trip(**clean(data))
+    d = clean(data)
+    trip = Trip(**d, **(await legs_for(d)))
     res = await db.trips.insert_one(trip.to_mongo())
     trip.id = str(res.inserted_id)
     return serialize(trip)
@@ -111,7 +130,8 @@ async def create_trip(data: TripInput):
 @api_router.put("/trips/{trip_id}")
 async def update_trip(trip_id: str, data: TripInput):
     oid = to_oid(trip_id)
-    update = {**clean(data), "updated_at": now_iso()}
+    d = clean(data)
+    update = {**d, **(await legs_for(d)), "updated_at": now_iso()}
     res = await db.trips.update_one({"_id": oid}, {"$set": update})
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Viaggio non trovato")
@@ -125,7 +145,7 @@ async def duplicate_trip(trip_id: str):
     if not doc:
         raise HTTPException(status_code=404, detail="Viaggio non trovato")
     src = Trip.from_mongo(doc)
-    copy = Trip(**{**src.model_dump(include=set(TripInput.model_fields)), "name": f"{src.name} (copia)"})
+    copy = Trip(**{**src.model_dump(exclude={"id", "created_at", "updated_at"}), "name": f"{src.name} (copia)"})
     res = await db.trips.insert_one(copy.to_mongo())
     copy.id = str(res.inserted_id)
     return serialize(copy)
@@ -137,6 +157,45 @@ async def delete_trip(trip_id: str):
     if res.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Viaggio non trovato")
     return {"ok": True}
+
+
+async def monthly_rows(month: str) -> list:
+    if not re.fullmatch(r"\d{4}-\d{2}", month):
+        raise HTTPException(status_code=422, detail="Mese non valido (AAAA-MM)")
+    docs = await db.trips.find({"legs": {"$ne": None}}).to_list(2000)
+    rows = []
+    for doc in docs:
+        t = Trip.from_mongo(doc)
+        for i, leg in enumerate(t.legs or []):
+            d = (t.leg_dates[i] if i < len(t.leg_dates) else "") or t.date
+            if d.startswith(month):
+                rows.append({"date": d, "trip": t.name, "trip_id": t.id, **leg})
+    rows.sort(key=lambda r: (r["date"], r["trip"], r["index"]))
+    return rows
+
+
+@api_router.get("/reports/monthly")
+async def monthly_report(month: str):
+    rows = await monthly_rows(month)
+    return {
+        "month": month,
+        "trips": len({r["trip_id"] for r in rows}),
+        "legs": len(rows),
+        "total_km": round(sum(r["distance_km"] for r in rows), 2),
+        "total_min": round(sum(r["duration_min"] for r in rows), 1),
+    }
+
+
+@api_router.get("/reports/monthly/excel")
+async def monthly_report_excel(month: str):
+    rows = await monthly_rows(month)
+    headers = ["Data", "Viaggio", "Partenza", "Arrivo", "Distanza (km)", "Durata (min)", "Durata"]
+    data = [
+        [datetime.fromisoformat(r["date"]).date(), r["trip"], r["from"], r["to"], r["distance_km"], r["duration_min"], fmt_duration(r["duration_min"])]
+        for r in rows
+    ]
+    total_min = sum(r["duration_min"] for r in rows)
+    return write_xlsx(f"Report km mensile {month}", f"{len(rows)} tratte", headers, data, total_min, f"report_km_{month}.xlsx")
 
 
 app.include_router(api_router)

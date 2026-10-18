@@ -36,3 +36,31 @@ export const newWaypoint = (value = "") => ({
   id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
   value,
 });
+
+export const today = () => new Date().toISOString().slice(0, 10);
+
+export const routeKey = (r) =>
+  JSON.stringify([r.origin.trim(), r.destination.trim(), cleanStops(r.waypoints), r.mode]);
+
+export const fmtKm = (km) => km.toLocaleString("it-IT", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+export const fmtMin = (min) => {
+  const t = Math.round(min);
+  const h = Math.floor(t / 60);
+  return h ? `${h} h ${String(t % 60).padStart(2, "0")} min` : `${t} min`;
+};
+
+export const downloadBlob = (blob, filename) => {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+export const apiError = async (e, fallback) => {
+  let d = e?.response?.data;
+  if (d instanceof Blob) d = JSON.parse(await d.text());
+  return typeof d?.detail === "string" ? d.detail : fallback;
+};

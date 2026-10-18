@@ -1,7 +1,6 @@
 import { Flag, Plus } from "lucide-react";
 import { newWaypoint } from "@/lib/maps";
 import { StopRow } from "@/components/planner/StopRow";
-import { GpsButton } from "@/components/planner/GpsButton";
 
 export const RouteForm = ({ route, update }) => {
   const { waypoints } = route;
@@ -25,7 +24,6 @@ export const RouteForm = ({ route, update }) => {
           onChange={(origin) => update({ origin })}
           placeholder="Indirizzo o coordinate GPS"
           testid="input-origin"
-          trailing={<GpsButton testid="btn-gps-origin" onLocated={(origin) => update({ origin })} />}
         />
         {waypoints.map((w, i) => (
           <StopRow
@@ -36,7 +34,6 @@ export const RouteForm = ({ route, update }) => {
             onChange={(v) => setWp(i, v)}
             placeholder="Indirizzo tappa"
             testid={`input-waypoint-${i}`}
-            trailing={<GpsButton compact testid={`btn-gps-waypoint-${i}`} onLocated={(v) => setWp(i, v)} />}
             index={i}
             total={waypoints.length}
             onMove={(dir) => moveWp(i, dir)}
@@ -61,7 +58,6 @@ export const RouteForm = ({ route, update }) => {
           onChange={(destination) => update({ destination })}
           placeholder="Indirizzo o coordinate GPS"
           testid="input-destination"
-          trailing={<GpsButton testid="btn-gps-destination" onLocated={(destination) => update({ destination })} />}
         />
       </div>
     </div>

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Compass, RotateCcw } from "lucide-react";
 import { api } from "@/lib/api";
-import { buildMapsUrl, newWaypoint } from "@/lib/maps";
+import { buildMapsUrl, newWaypoint, routeKey, today } from "@/lib/maps";
 import { RouteForm } from "@/components/planner/RouteForm";
 import { ModeSelector } from "@/components/planner/ModeSelector";
 import { ActionBar } from "@/components/planner/ActionBar";
@@ -10,11 +10,15 @@ import { MapPreview } from "@/components/planner/MapPreview";
 import { SaveTripDialog } from "@/components/planner/SaveTripDialog";
 import { SavedTrips } from "@/components/planner/SavedTrips";
 import { LegsSummary } from "@/components/planner/LegsSummary";
+import { MonthlyReport } from "@/components/planner/MonthlyReport";
 
-const emptyRoute = { origin: "", destination: "", waypoints: [], mode: "driving" };
+const emptyRoute = () => ({ origin: "", destination: "", waypoints: [], mode: "driving", date: today(), legDates: [] });
+const legsFromTrip = (trip, route) =>
+  trip.legs ? { legs: trip.legs, total_km: trip.total_km, total_min: trip.total_min, mode: trip.mode, key: routeKey(route) } : null;
 
 export default function Planner() {
   const [route, setRoute] = useState(emptyRoute);
+  const [legsResult, setLegsResult] = useState(null);
   const [currentTrip, setCurrentTrip] = useState(null);
   const [saveOpen, setSaveOpen] = useState(false);
   const [trips, setTrips] = useState([]);
@@ -80,6 +84,8 @@ export default function Planner() {
     destination: route.destination,
     waypoints: route.waypoints.map((w) => w.value),
     mode: route.mode,
+    date: route.date,
+    leg_dates: route.legDates,
   });
 
   const saveTrip = async (meta, asNew) => {
@@ -88,8 +94,10 @@ export default function Planner() {
         ? await api.post("/trips", payload(meta))
         : await api.put(`/trips/${currentTrip.id}`, payload(meta));
       setCurrentTrip(data);
+      if (data.legs) setLegsResult(legsFromTrip(data, route));
       setSaveOpen(false);
       toast.success(asNew || !currentTrip ? "Viaggio salvato" : "Viaggio aggiornato");
+      if (!data.legs) toast.warning("Distanze non calcolate: verifica gli indirizzi");
       fetchTrips(search.trim());
     } catch {
       toast.error("Salvataggio non riuscito");
@@ -97,12 +105,16 @@ export default function Planner() {
   };
 
   const loadTrip = (trip) => {
-    setRoute({
+    const next = {
       origin: trip.origin,
       destination: trip.destination,
       waypoints: trip.waypoints.map((w) => newWaypoint(w)),
       mode: trip.mode,
-    });
+      date: trip.date,
+      legDates: trip.leg_dates || [],
+    };
+    setRoute(next);
+    setLegsResult(legsFromTrip(trip, next));
     setCurrentTrip(trip);
     window.scrollTo({ top: 0, behavior: "smooth" });
     toast.success(`"${trip.name}" caricato nel pianificatore`);
@@ -130,7 +142,8 @@ export default function Planner() {
   };
 
   const reset = () => {
-    setRoute(emptyRoute);
+    setRoute(emptyRoute());
+    setLegsResult(null);
     setCurrentTrip(null);
   };
 
@@ -166,7 +179,7 @@ export default function Planner() {
           <section className="lg:col-span-7 space-y-5 fade-up" style={{ animationDelay: "80ms" }}>
             <RouteForm route={route} update={update} />
             <ModeSelector mode={route.mode} onChange={(mode) => update({ mode })} hasStops={route.waypoints.length > 0} />
-            <LegsSummary route={route} tripName={currentTrip?.name} validate={requireValid} />
+            <LegsSummary route={route} update={update} result={legsResult} setResult={setLegsResult} tripName={currentTrip?.name} validate={requireValid} />
             <ActionBar onOpen={openMaps} onCopy={copyLink} onShare={share} onSave={openSave} isEditing={!!currentTrip} />
           </section>
           <aside className="lg:col-span-5 space-y-5 fade-up" style={{ animationDelay: "160ms" }}>
@@ -181,6 +194,7 @@ export default function Planner() {
               onDuplicate={duplicateTrip}
               onDelete={deleteTrip}
             />
+            <MonthlyReport version={trips} />
           </aside>
         </div>
       </div>

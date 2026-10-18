@@ -15,6 +15,9 @@ Inizialmente era stato chiesto un CRM vendite, poi l'utente ha incollato un HTML
 - 2026-06: GPS su ogni tappa intermedia
 - 2026-06: Data per singola tratta (Excel), distanze salvate con ogni viaggio (badge km nell'elenco), report km mensile (riepilogo + Excel), suggerimenti indirizzi mentre si scrive (Photon), pulsante GPS integrato in ogni riga
 
+## Implementato (cont.)
+- 2026-06: Report mensile Excel: una riga per giorno (Data, Viaggio, Percorso, Distanza km), tolte colonne durata; rimosso selettore mezzo (sempre auto)
+
 ## Backlog
 - P1: Ottimizzazione automatica dell'ordine delle tappe
 - P2: Rimborso chilometrico (€/km) nel report mensile; esportazione PDF

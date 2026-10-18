@@ -4,7 +4,6 @@ import { Compass, RotateCcw } from "lucide-react";
 import { api } from "@/lib/api";
 import { buildMapsUrl, newWaypoint, routeKey, today } from "@/lib/maps";
 import { RouteForm } from "@/components/planner/RouteForm";
-import { ModeSelector } from "@/components/planner/ModeSelector";
 import { ActionBar } from "@/components/planner/ActionBar";
 import { MapPreview } from "@/components/planner/MapPreview";
 import { SaveTripDialog } from "@/components/planner/SaveTripDialog";
@@ -109,7 +108,7 @@ export default function Planner() {
       origin: trip.origin,
       destination: trip.destination,
       waypoints: trip.waypoints.map((w) => newWaypoint(w)),
-      mode: trip.mode,
+      mode: "driving",
       date: trip.date,
       legDates: trip.leg_dates || [],
     };
@@ -178,7 +177,6 @@ export default function Planner() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
           <section className="relative z-20 lg:z-auto lg:col-span-7 space-y-5 fade-up" style={{ animationDelay: "80ms" }}>
             <RouteForm route={route} update={update} />
-            <ModeSelector mode={route.mode} onChange={(mode) => update({ mode })} hasStops={route.waypoints.length > 0} />
             <LegsSummary route={route} update={update} result={legsResult} setResult={setLegsResult} tripName={currentTrip?.name} validate={requireValid} />
             <ActionBar onOpen={openMaps} onCopy={copyLink} onShare={share} onSave={openSave} isEditing={!!currentTrip} />
           </section>

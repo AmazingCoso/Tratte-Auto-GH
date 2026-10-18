@@ -116,13 +116,16 @@ def write_xlsx(title: str, subtitle: str, headers: list, rows: list, total_min: 
         ws.append(list(r))
 
     n = len(headers)
-    km_col, min_col = ws.cell(4, n - 2).column_letter, ws.cell(4, n - 1).column_letter
     last = max(ws.max_row, 5)
+    km_i = headers.index("Distanza (km)")
+    min_i = headers.index("Durata (min)") if "Durata (min)" in headers else None
     total = [""] * n
-    total[n - 4] = "TOTALE"
-    total[n - 3] = f"=SUM({km_col}5:{km_col}{last})"
-    total[n - 2] = f"=SUM({min_col}5:{min_col}{last})"
-    total[n - 1] = fmt_duration(total_min)
+    total[km_i - 1] = "TOTALE"
+    col = lambda i: ws.cell(4, i + 1).column_letter
+    total[km_i] = f"=SUM({col(km_i)}5:{col(km_i)}{last})"
+    if min_i is not None:
+        total[min_i] = f"=SUM({col(min_i)}5:{col(min_i)}{last})"
+        total[n - 1] = fmt_duration(total_min)
     ws.append(total)
     for cell in ws[ws.max_row]:
         cell.font = Font(bold=True)
@@ -133,12 +136,14 @@ def write_xlsx(title: str, subtitle: str, headers: list, rows: list, total_min: 
             cell.border = Border(top=thin, bottom=thin, left=thin, right=thin)
             if isinstance(cell.value, Date):
                 cell.number_format = "DD/MM/YYYY"
-        row[n - 3].number_format = "0.00"
-        row[n - 2].number_format = "0.0"
+        row[km_i].number_format = "0.00"
+        if min_i is not None:
+            row[min_i].number_format = "0.0"
 
     for i in range(1, n + 1):
         h = headers[i - 1]
-        ws.column_dimensions[ws.cell(4, i).column_letter].width = 36 if h in ("Partenza", "Arrivo", "Viaggio") else max(8, len(h) + 4)
+        wide = {"Partenza": 36, "Arrivo": 36, "Viaggio": 30, "Percorso": 70}
+        ws.column_dimensions[ws.cell(4, i).column_letter].width = wide.get(h, max(8, len(h) + 4))
 
     buf = io.BytesIO()
     wb.save(buf)

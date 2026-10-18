@@ -203,13 +203,20 @@ async def monthly_report(month: str):
 @api_router.get("/reports/monthly/excel")
 async def monthly_report_excel(month: str):
     rows = await monthly_rows(month)
-    headers = ["Data", "Viaggio", "Partenza", "Arrivo", "Distanza (km)", "Durata (min)", "Durata"]
-    data = [
-        [datetime.fromisoformat(r["date"]).date(), r["trip"], r["from"], r["to"], r["distance_km"], r["duration_min"], fmt_duration(r["duration_min"])]
-        for r in rows
-    ]
-    total_min = sum(r["duration_min"] for r in rows)
-    return write_xlsx(f"Report km mensile {month}", f"{len(rows)} tratte", headers, data, total_min, f"report_km_{month}.xlsx")
+    days: dict = {}
+    for r in rows:
+        days.setdefault(r["date"], []).append(r)
+    data = []
+    for d, legs in days.items():
+        stops = []
+        for leg in legs:
+            for s in (leg["from"], leg["to"]):
+                if not stops or stops[-1] != s:
+                    stops.append(s)
+        trips = ", ".join(dict.fromkeys(leg["trip"] for leg in legs))
+        data.append([date.fromisoformat(d), trips, " → ".join(stops), round(sum(leg["distance_km"] for leg in legs), 2)])
+    headers = ["Data", "Viaggio", "Percorso", "Distanza (km)"]
+    return write_xlsx(f"Report km mensile {month}", f"{len(data)} giorni", headers, data, 0, f"report_km_{month}.xlsx")
 
 
 app.include_router(api_router)

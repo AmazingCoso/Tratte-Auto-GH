@@ -94,7 +94,6 @@ export const LegsSummary = ({ route, update, result, setResult, tripName, valida
             <span className="font-mono-ui text-xs text-slate-300" data-testid="legs-total-time">{fmtMin(result.total_min)}</span>
           </div>
           {!fresh && <p className="mt-2 text-xs text-amber-700" data-testid="legs-stale-warning">Percorso modificato: ricalcola le tratte.</p>}
-          {result.mode === "transit" && <p className="mt-2 text-xs text-slate-500">Per i mezzi pubblici la distanza è stimata su strada.</p>}
         </div>
       )}
 

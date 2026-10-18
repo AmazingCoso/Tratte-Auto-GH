@@ -11,8 +11,9 @@ MONTH = "2031-03"
 
 
 @pytest.fixture(scope="module")
-def s():
+def s(profile_id):
     sess = requests.Session()
+    sess.headers["X-Profile-Id"] = profile_id
     yield sess
     for t in sess.get(f"{BASE_URL}/api/trips", params={"q": "TEST_"}).json():
         if t["name"].startswith("TEST_"):

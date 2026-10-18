@@ -8,8 +8,9 @@ API = f"{BASE_URL}/api"
 
 
 @pytest.fixture(scope="module")
-def session():
+def session(profile_id):
     s = requests.Session()
+    s.headers["X-Profile-Id"] = profile_id
     s.headers.update({"Content-Type": "application/json"})
     yield s
     # Cleanup TEST_ prefixed trips

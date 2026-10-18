@@ -100,11 +100,11 @@ def serialize(trip: Trip) -> dict:
     return data
 
 
-def to_oid(trip_id: str) -> ObjectId:
+def to_oid(obj_id: str, detail: str = "Viaggio non trovato") -> ObjectId:
     try:
-        return ObjectId(trip_id)
+        return ObjectId(obj_id)
     except InvalidId:
-        raise HTTPException(status_code=404, detail="Viaggio non trovato")
+        raise HTTPException(status_code=404, detail=detail)
 
 
 def clean(data: TripInput) -> dict:
@@ -158,7 +158,7 @@ async def create_profile(data: ProfileInput):
 
 @api_router.put("/profiles/{profile_id}")
 async def rename_profile(profile_id: str, data: ProfileInput):
-    oid = to_oid(profile_id)
+    oid = to_oid(profile_id, "Profilo non trovato")
     res = await db.profiles.update_one({"_id": oid}, {"$set": {"name": data.name}})
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Profilo non trovato")
@@ -167,7 +167,7 @@ async def rename_profile(profile_id: str, data: ProfileInput):
 
 @api_router.delete("/profiles/{profile_id}")
 async def delete_profile(profile_id: str):
-    res = await db.profiles.delete_one({"_id": to_oid(profile_id)})
+    res = await db.profiles.delete_one({"_id": to_oid(profile_id, "Profilo non trovato")})
     if res.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Profilo non trovato")
     await db.trips.delete_many({"profile_id": profile_id})
@@ -268,7 +268,7 @@ async def create_place(data: PlaceInput):
 
 @api_router.put("/places/{place_id}")
 async def update_place(place_id: str, data: PlaceInput):
-    oid = to_oid(place_id)
+    oid = to_oid(place_id, "Luogo non trovato")
     res = await db.places.update_one({"_id": oid}, {"$set": {"name": data.name.strip(), "address": data.address.strip()}})
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Luogo non trovato")
@@ -277,7 +277,7 @@ async def update_place(place_id: str, data: PlaceInput):
 
 @api_router.delete("/places/{place_id}")
 async def delete_place(place_id: str):
-    res = await db.places.delete_one({"_id": to_oid(place_id)})
+    res = await db.places.delete_one({"_id": to_oid(place_id, "Luogo non trovato")})
     if res.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Luogo non trovato")
     return {"ok": True}

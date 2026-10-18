@@ -10,6 +10,15 @@ const applyHeader = (id) => {
   else delete api.defaults.headers.common["X-Profile-Id"];
 };
 
+let onProfileMissing = () => {};
+api.interceptors.response.use(
+  (r) => r,
+  (err) => {
+    if (err?.response?.status === 404 && err.response.data?.detail === "Profilo non trovato") onProfileMissing();
+    return Promise.reject(err);
+  }
+);
+
 export const ProfileProvider = ({ children }) => {
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,6 +53,11 @@ export const ProfileProvider = ({ children }) => {
       const saved = localStorage.getItem(KEY);
       if (saved && !list.some((p) => p.id === saved)) select(null);
     });
+    onProfileMissing = () => {
+      toast.error("Il profilo non esiste più");
+      select(null);
+      reload();
+    };
   }, [reload, select]);
 
   const create = async (name) => {

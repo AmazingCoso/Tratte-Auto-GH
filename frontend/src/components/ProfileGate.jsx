@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { Compass, Loader2, Plus, Trash2 } from "lucide-react";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { Compass, Loader2, Plus } from "lucide-react";
+import { DeleteProfileButton } from "@/components/DeleteProfileButton";
 import { useProfile } from "@/lib/profile";
 
 const COLORS = ["bg-blue-600", "bg-emerald-600", "bg-amber-500", "bg-rose-500", "bg-violet-600", "bg-cyan-600"];
@@ -66,23 +63,7 @@ export const ProfileGate = () => {
                     </span>
                     <span className="font-medium text-slate-900 truncate">{p.name}</span>
                   </button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <button type="button" aria-label="Elimina profilo" data-testid={`btn-delete-profile-${p.id}`} className="w-10 h-10 flex items-center justify-center rounded-lg text-slate-300 hover:text-red-600 hover:bg-red-50 transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent className="w-[calc(100%-2rem)] rounded-2xl">
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Eliminare il profilo "{p.name}"?</AlertDialogTitle>
-                        <AlertDialogDescription>Verranno eliminati anche tutti i suoi viaggi salvati. L'operazione non può essere annullata.</AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel data-testid="btn-cancel-delete-profile">Annulla</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => del(p)} className="bg-red-600 hover:bg-red-700" data-testid="btn-confirm-delete-profile">Elimina</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <DeleteProfileButton profile={p} onConfirm={() => del(p)} />
                 </li>
               ))}
             </ul>

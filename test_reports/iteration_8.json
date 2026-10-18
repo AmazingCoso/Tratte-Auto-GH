@@ -1,0 +1,41 @@
+{
+  "summary": "Iteration 8 tested per-profile accounts with no password, on both backend and frontend. Backend: 72 passed, 1 skipped (test_real_profile_untouched skipped because the real profile no longer exists). New file test_profiles.py covers: profiles CRUD (sorted by creation, whitespace trimmed, 422 for empty/blank/>40 chars, PUT rename, 404 for unknown ids, deleting a profile also deletes its trips); X-Profile-Id enforcement (400 when missing, 404 when unknown or invalid) on trips list/get/post/delete and on monthly report + Excel; scoping, where profile B gets 404 on GET/PUT/PATCH dates/duplicate/DELETE of A's trip and A's trip stays unchanged; a duplicated trip stays in the same profile; the monthly report only counts the profile's own trips; the monthly Excel title includes the profile name; places are shared with or without the header; /api/route/legs works without the header. The old pytest files were updated to send X-Profile-Id via a new conftest fixture that creates a session-scoped TEST_ profile and deletes it afterwards. Frontend: profile gate appears when localStorage is empty; the create button is disabled when the input is empty; creating a profile enters the planner; the selection survives a reload; current-profile-name is shown; calculating legs auto-saves (211.1 km, count 1, report 211.1 km); the switch button returns to the gate; profile B sees 0 trips and an empty report but the same 2 favourites; the save dialog saves in B; the monthly Excel download is titled 'Report km mensile 2026-10 - TEST_UI_B'; switching back to A shows only A's trip; deleting B works and B's trips API then returns 404; at 390px the header has no horizontal overflow (scrollWidth 390) and a long name is truncated; the delete dialog renders on mobile. IMPORTANT DATA NOTE: the real profile 'Matteo Pasqualini' (6ad4eb31f0ed23cc2788c0bc) and its trip(s) were ALREADY DELETED before any of my tests ran. backend.out.log line ~921 shows 'DELETE /api/profiles/6ad4eb31f0ed23cc2788c0bc 200' on a keep-alive connection (10.6.131.142:52632), preceded by GET /api/trips 200 and followed by GET /api/profiles. That is the UI's remove() pattern (browser), and it happened before my first pytest POSTs (my profile ObjectIds start 6ad4eb6e, about 61s later). My tests only delete ids they created. The DB now has 0 profiles, 0 trips and 2 places (the shared favourites are intact).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "PUT/DELETE /api/profiles/{bad_id}", "issue": "to_oid() returns detail 'Viaggio non trovato' for an invalid profile id (wrong message, should be 'Profilo non trovato')"},
+      {"endpoint": "POST /api/profiles", "issue": "The first-profile check (count==0) also runs again after every profile has been deleted, and it is not atomic. Orphan trips (profile_id None) are reassigned to whichever profile is created next; if two are created at once, both could see count 0."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Profile deleted on another device while selected here", "issue": "Not verified. Planner API calls would get 404 'Profilo non trovato' and there seems to be no handler that sends the user back to the gate (only startup validation in ProfileProvider). Suggest an axios interceptor: on 404 'Profilo non trovato', call select(null) and reload().", "affected_selectors": ["btn-switch-profile"]}
+    ],
+    "design_issues": [
+      {"screen": "ProfileGate", "issues": ["The delete trash icon is text-slate-300 on white, which is very low contrast and easy to miss (it only gets red on hover; no hover on mobile)"]},
+      {"screen": "Planner header @390px", "issues": ["The profile chip (174px) squeezes the left column: 'PIANIFICATORE VIAGGI' and the 'Tratte Auto' title each wrap onto 2 lines. Not an overflow, but cramped. Consider moving the chip above the title on mobile or shrinking it to the avatar only."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_profiles.py", "/app/backend/tests/conftest.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Tell the user that the profile 'Matteo Pasqualini' and its trip(s) were deleted (DELETE /api/profiles/6ad4eb31... via the UI-like request pattern, before testing started). The data cannot be recovered from the app.",
+    "Consider safeguards against accidental deletion: a soft delete, or requiring the profile name to be typed to confirm, given that deleting cascades to trips with no undo",
+    "Fix the 404 message for invalid profile ids in PUT/DELETE /api/profiles",
+    "Optional: handle a 404 'Profilo non trovato' globally in the frontend so the user is sent back to the gate",
+    "Optional: improve the contrast of the delete icon on the gate and the mobile header layout"
+  ],
+  "critical_code_review_comments": [
+    "delete_profile cascades and deletes all of the profile's trips, with no undo, and anyone can delete any profile. This led to the real data loss seen in this iteration.",
+    "create_profile adoption of orphan trips should only happen once (e.g. a migration flag), not every time profiles.count==0",
+    "duplicate_trip correctly keeps profile_id (it is inherited from model_dump); verified",
+    "monthly_report_excel uses ObjectId(pid) directly; safe because current_profile has already validated it"
+  ],
+  "updated_files": ["/app/backend/tests/conftest.py", "/app/backend/tests/test_profiles.py", "/app/backend/tests/test_trips.py", "/app/backend/tests/test_iter3_features.py", "/app/backend/tests/test_trip_dates_patch.py"],
+  "success_rate": {"backend": "100% (72/72, 1 skipped)", "frontend": "100% of tested flows"},
+  "seed_data_creation": "None left behind. All TEST_ profiles, trips and places were deleted. The DB currently has 0 profiles, 0 trips and 2 shared places.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run the backend suite with: REACT_APP_BACKEND_URL=... pytest /app/backend/tests (pytest.ini uses xdist). conftest.profile_id creates a TEST_pytest_profile for each worker. Each Playwright run starts with fresh localStorage, so the gate shows first; select a profile with btn-select-profile-{id}. Creating a profile while none exist makes it the 'first' profile, which adopts orphan trips.",
+  "rca of the issue": "Real profile loss: the backend log shows DELETE /api/profiles/6ad4eb31f0ed23cc2788c0bc (200) followed by GET /api/profiles on the same connection, after a GET /api/trips 200. This matches ProfileGate del() -> remove() -> reload(). It happened before the testing agent created any profiles. ProfileProvider.remove plus the backend cascade then deleted the profile's trips."
+}

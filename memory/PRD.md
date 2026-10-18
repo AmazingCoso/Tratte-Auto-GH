@@ -21,6 +21,8 @@ Inizialmente era stato chiesto un CRM vendite, poi l'utente ha incollato un HTML
 - 2026-06: "Calcola tratte" salva automaticamente il viaggio in Viaggi salvati (nuovo o aggiorna quello caricato; nome automatico "Partenza → Destinazione" che si aggiorna se non personalizzato)
 - 2026-06: Salvataggio automatico delle date (viaggio e singole tratte) quando si modificano su un viaggio salvato (PATCH /api/trips/{id}/dates)
 - 2026-06: Luoghi preferiti (collezione `places`, CRUD /api/places): pannello gestione, pulsante "Preferiti" su ogni riga del percorso, preferiti in cima ai suggerimenti
+- 2026-06: Rinominato "Tratte Auto"
+- 2026-06: Profili senza password (collezione `profiles`, header X-Profile-Id): viaggi e report separati per persona, preferiti condivisi; eliminazione profilo con conferma scrivendo il nome
 
 ## Backlog
 - P1: Ottimizzazione automatica dell'ordine delle tappe

@@ -7,8 +7,10 @@ BASE_URL = os.environ.get("REACT_APP_BACKEND_URL").rstrip("/")
 
 
 @pytest.fixture(scope="module")
-def s():
-    return requests.Session()
+def s(profile_id):
+    sess = requests.Session()
+    sess.headers["X-Profile-Id"] = profile_id
+    return sess
 
 
 @pytest.fixture(scope="module")

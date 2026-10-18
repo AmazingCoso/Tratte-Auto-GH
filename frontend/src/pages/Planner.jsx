@@ -190,6 +190,7 @@ export default function Planner() {
               Tratte Auto
             </h1>
             <p className="mt-2 text-sm sm:text-base text-slate-500 max-w-md">
+              <span className="sm:hidden block text-slate-700 font-medium mb-0.5" data-testid="current-profile-name-mobile">Ciao, {current.name}</span>
               {currentTrip ? (
                 <span data-testid="current-trip-label">Stai modificando: <b className="text-slate-800">{currentTrip.name}</b></span>
               ) : (
@@ -202,9 +203,11 @@ export default function Planner() {
               onClick={() => select(null)}
               data-testid="btn-switch-profile"
               className="flex items-center gap-2 h-11 pl-1.5 pr-3 rounded-full border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:border-slate-300 transition-colors"
+              aria-label={`Profilo: ${current.name}. Cambia profilo`}
+              title={current.name}
             >
               <span className="w-8 h-8 rounded-full bg-slate-900 text-white font-heading font-semibold flex items-center justify-center">{current.name.charAt(0).toUpperCase()}</span>
-              <span className="max-w-[90px] sm:max-w-[160px] truncate" data-testid="current-profile-name">{current.name}</span>
+              <span className="hidden sm:inline max-w-[160px] truncate" data-testid="current-profile-name">{current.name}</span>
               <Users className="w-4 h-4 text-slate-400" />
             </button>
             <button

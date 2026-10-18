@@ -17,21 +17,31 @@ export const SavedTrips = ({ trips, loading, search, onSearch, currentId, onLoad
         className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50/60 text-sm focus:outline-none focus:bg-white focus:border-slate-900 transition-colors"
       />
     </div>
-    {loading ? (
+    <TripsBody trips={trips} loading={loading} search={search} currentId={currentId} onLoad={onLoad} onDuplicate={onDuplicate} onDelete={onDelete} />
+  </div>
+);
+
+const TripsBody = ({ trips, loading, search, currentId, onLoad, onDuplicate, onDelete }) => {
+  if (loading) {
+    return (
       <div className="space-y-2">
         {[0, 1].map((i) => <div key={i} className="h-20 rounded-xl bg-slate-100 animate-pulse" />)}
       </div>
-    ) : trips.length === 0 ? (
+    );
+  }
+  if (trips.length === 0) {
+    return (
       <div className="py-10 flex flex-col items-center text-center text-slate-400 gap-2" data-testid="saved-trips-empty">
         <Route className="w-7 h-7" />
-        <p className="text-sm">{search ? "Nessun viaggio trovato." : "Nessun viaggio salvato. Componi un percorso e premi Salva."}</p>
+        <p className="text-sm">{search ? "Nessun viaggio trovato." : "Nessun viaggio salvato. Componi un percorso e premi Calcola tratte."}</p>
       </div>
-    ) : (
-      <ul className="space-y-2 max-h-[520px] overflow-y-auto -mr-1 pr-1">
-        {trips.map((t) => (
-          <TripCard key={t.id} trip={t} active={t.id === currentId} onLoad={onLoad} onDuplicate={onDuplicate} onDelete={onDelete} />
-        ))}
-      </ul>
-    )}
-  </div>
-);
+    );
+  }
+  return (
+    <ul className="space-y-2 max-h-[520px] overflow-y-auto -mr-1 pr-1">
+      {trips.map((t) => (
+        <TripCard key={t.id} trip={t} active={t.id === currentId} onLoad={onLoad} onDuplicate={onDuplicate} onDelete={onDelete} />
+      ))}
+    </ul>
+  );
+};

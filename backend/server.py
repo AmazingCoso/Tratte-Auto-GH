@@ -11,7 +11,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, BeforeValidator, field_validator
 from typing import List, Optional, Literal, Annotated
 from datetime import datetime, timezone, date
-from routing import router as route_router, compute_legs, write_xlsx, fmt_duration, RouteInput
+from routing import router as route_router, compute_legs, write_xlsx, RouteInput
 import httpx
 
 ROOT_DIR = Path(__file__).parent

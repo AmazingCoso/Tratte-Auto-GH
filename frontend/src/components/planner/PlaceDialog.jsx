@@ -35,6 +35,8 @@ export const PlaceDialog = ({ open, onOpenChange, place }) => {
     }
   };
 
+  const idleLabel = place ? "Aggiorna" : "Aggiungi";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100%-2rem)] rounded-2xl sm:max-w-md" data-testid="place-dialog">
@@ -56,7 +58,7 @@ export const PlaceDialog = ({ open, onOpenChange, place }) => {
           </div>
           <DialogFooter>
             <button type="submit" disabled={busy || !name.trim() || !address.trim()} data-testid="btn-submit-place" className="h-12 px-6 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 disabled:opacity-50 transition-colors">
-              {busy ? "Salvataggio…" : place ? "Aggiorna" : "Aggiungi"}
+              {busy ? "Salvataggio…" : idleLabel}
             </button>
           </DialogFooter>
         </form>

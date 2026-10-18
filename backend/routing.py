@@ -97,40 +97,30 @@ async def route_legs(data: RouteInput):
 LEG_HEADERS = ["N°", "Data", "Partenza", "Arrivo", "Distanza (km)", "Durata (min)", "Durata"]
 
 
-def write_xlsx(title: str, subtitle: str, headers: list, rows: list, total_min: float, filename: str):
-    """rows must end with (..., km, min, durata) columns; TOTALE row sums the km/min columns."""
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Tratte"
-    thin = Side(style="thin", color="E2E8F0")
-    ws["A1"] = title
-    ws["A1"].font = Font(bold=True, size=14)
-    ws["A2"] = subtitle
-    ws.append([])
-    ws.append(headers)
+def _style_header(ws):
     for cell in ws[4]:
         cell.font = Font(bold=True, color="FFFFFF")
         cell.fill = PatternFill("solid", fgColor="0F172A")
         cell.alignment = Alignment(horizontal="center")
-    for r in rows:
-        ws.append(list(r))
 
-    n = len(headers)
+
+def _append_total(ws, headers: list, km_i: int, min_i: Optional[int], total_min: float):
     last = max(ws.max_row, 5)
-    km_i = headers.index("Distanza (km)")
-    min_i = headers.index("Durata (min)") if "Durata (min)" in headers else None
-    total = [""] * n
-    total[km_i - 1] = "TOTALE"
     col = lambda i: ws.cell(4, i + 1).column_letter
+    total = [""] * len(headers)
+    total[km_i - 1] = "TOTALE"
     total[km_i] = f"=SUM({col(km_i)}5:{col(km_i)}{last})"
     if min_i is not None:
         total[min_i] = f"=SUM({col(min_i)}5:{col(min_i)}{last})"
-        total[n - 1] = fmt_duration(total_min)
+        total[-1] = fmt_duration(total_min)
     ws.append(total)
     for cell in ws[ws.max_row]:
         cell.font = Font(bold=True)
         cell.fill = PatternFill("solid", fgColor="F1F5F9")
 
+
+def _format_cells(ws, km_i: int, min_i: Optional[int]):
+    thin = Side(style="thin", color="E2E8F0")
     for row in ws.iter_rows(min_row=4, max_row=ws.max_row):
         for cell in row:
             cell.border = Border(top=thin, bottom=thin, left=thin, right=thin)
@@ -140,10 +130,34 @@ def write_xlsx(title: str, subtitle: str, headers: list, rows: list, total_min: 
         if min_i is not None:
             row[min_i].number_format = "0.0"
 
-    for i in range(1, n + 1):
-        h = headers[i - 1]
-        wide = {"Partenza": 36, "Arrivo": 36, "Viaggio": 30, "Percorso": 70}
-        ws.column_dimensions[ws.cell(4, i).column_letter].width = wide.get(h, max(8, len(h) + 4))
+
+COL_WIDTHS = {"Partenza": 36, "Arrivo": 36, "Viaggio": 30, "Percorso": 70}
+
+
+def _set_widths(ws, headers: list):
+    for i, h in enumerate(headers, start=1):
+        ws.column_dimensions[ws.cell(4, i).column_letter].width = COL_WIDTHS.get(h, max(8, len(h) + 4))
+
+
+def write_xlsx(title: str, subtitle: str, headers: list, rows: list, total_min: float, filename: str):
+    """TOTALE row sums 'Distanza (km)' and, when present, 'Durata (min)'."""
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Tratte"
+    ws["A1"] = title
+    ws["A1"].font = Font(bold=True, size=14)
+    ws["A2"] = subtitle
+    ws.append([])
+    ws.append(headers)
+    _style_header(ws)
+    for r in rows:
+        ws.append(list(r))
+
+    km_i = headers.index("Distanza (km)")
+    min_i = headers.index("Durata (min)") if "Durata (min)" in headers else None
+    _append_total(ws, headers, km_i, min_i, total_min)
+    _format_cells(ws, km_i, min_i)
+    _set_widths(ws, headers)
 
     buf = io.BytesIO()
     wb.save(buf)

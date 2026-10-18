@@ -6,6 +6,35 @@ import { useProfile } from "@/lib/profile";
 
 const COLORS = ["bg-blue-600", "bg-emerald-600", "bg-amber-500", "bg-rose-500", "bg-violet-600", "bg-cyan-600"];
 
+const ProfilesList = ({ profiles, loading, onSelect, onDelete }) => {
+  if (loading) {
+    return <div className="py-8 flex justify-center text-slate-400"><Loader2 className="w-5 h-5 animate-spin" /></div>;
+  }
+  if (profiles.length === 0) {
+    return <p className="p-4 text-sm text-slate-500" data-testid="profiles-empty">Nessun profilo ancora. Crea il primo qui sotto.</p>;
+  }
+  return (
+    <ul className="space-y-1">
+      {profiles.map((p, i) => (
+        <li key={p.id} className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onSelect(p.id)}
+            data-testid={`btn-select-profile-${p.id}`}
+            className="flex-1 min-w-0 flex items-center gap-3 px-3 py-3 rounded-xl text-left hover:bg-slate-50 transition-colors"
+          >
+            <span className={`w-11 h-11 shrink-0 rounded-full ${COLORS[i % COLORS.length]} text-white font-heading text-lg font-semibold flex items-center justify-center`}>
+              {p.name.charAt(0).toUpperCase()}
+            </span>
+            <span className="font-medium text-slate-900 truncate">{p.name}</span>
+          </button>
+          <DeleteProfileButton profile={p} onConfirm={() => onDelete(p)} />
+        </li>
+      ))}
+    </ul>
+  );
+};
+
 export const ProfileGate = () => {
   const { profiles, loading, select, create, remove } = useProfile();
   const [name, setName] = useState("");
@@ -44,30 +73,7 @@ export const ProfileGate = () => {
         <p className="mt-2 text-sm sm:text-base text-slate-500">Scegli il tuo profilo: ognuno ha i suoi viaggi, i suoi luoghi preferiti e il suo report mensile.</p>
 
         <div className="mt-8 bg-white border border-slate-200/80 shadow-sm rounded-2xl p-3 sm:p-4">
-          {loading ? (
-            <div className="py-8 flex justify-center text-slate-400"><Loader2 className="w-5 h-5 animate-spin" /></div>
-          ) : profiles.length === 0 ? (
-            <p className="p-4 text-sm text-slate-500" data-testid="profiles-empty">Nessun profilo ancora. Crea il primo qui sotto.</p>
-          ) : (
-            <ul className="space-y-1">
-              {profiles.map((p, i) => (
-                <li key={p.id} className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => select(p.id)}
-                    data-testid={`btn-select-profile-${p.id}`}
-                    className="flex-1 min-w-0 flex items-center gap-3 px-3 py-3 rounded-xl text-left hover:bg-slate-50 transition-colors"
-                  >
-                    <span className={`w-11 h-11 shrink-0 rounded-full ${COLORS[i % COLORS.length]} text-white font-heading text-lg font-semibold flex items-center justify-center`}>
-                      {p.name.charAt(0).toUpperCase()}
-                    </span>
-                    <span className="font-medium text-slate-900 truncate">{p.name}</span>
-                  </button>
-                  <DeleteProfileButton profile={p} onConfirm={() => del(p)} />
-                </li>
-              ))}
-            </ul>
-          )}
+          <ProfilesList profiles={profiles} loading={loading} onSelect={select} onDelete={del} />
 
           <form onSubmit={submit} className="mt-2 pt-3 border-t border-slate-100 flex gap-2">
             <input

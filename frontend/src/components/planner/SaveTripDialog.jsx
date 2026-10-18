@@ -23,6 +23,8 @@ export const SaveTripDialog = ({ open, onOpenChange, currentTrip, onSave }) => {
     setBusy(false);
   };
 
+  const idleLabel = currentTrip ? "Aggiorna" : "Salva viaggio";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100%-2rem)] rounded-2xl sm:max-w-md" data-testid="save-trip-dialog">
@@ -52,7 +54,7 @@ export const SaveTripDialog = ({ open, onOpenChange, currentTrip, onSave }) => {
               </button>
             )}
             <button type="submit" disabled={busy || !name.trim()} data-testid="btn-submit-save-trip" className="h-12 px-6 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 disabled:opacity-50 transition-colors">
-              {busy ? "Salvataggio…" : currentTrip ? "Aggiorna" : "Salva viaggio"}
+              {busy ? "Salvataggio…" : idleLabel}
             </button>
           </DialogFooter>
         </form>

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, Header, Depends
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -79,6 +79,7 @@ class TripInput(TripDates):
 
 
 class Trip(BaseDocument, TripInput):
+    profile_id: Optional[str] = None
     legs: Optional[list] = None
     total_km: Optional[float] = None
     total_min: Optional[float] = None
@@ -117,39 +118,95 @@ async def root():
     return {"message": "Tratte Auto API"}
 
 
+class ProfileInput(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+    name: str = Field(min_length=1, max_length=40)
+
+
+class Profile(BaseDocument, ProfileInput):
+    created_at: str = Field(default_factory=now_iso)
+
+
+async def current_profile(x_profile_id: Optional[str] = Header(None)) -> str:
+    if not x_profile_id:
+        raise HTTPException(status_code=400, detail="Seleziona un profilo")
+    try:
+        oid = ObjectId(x_profile_id)
+    except InvalidId:
+        raise HTTPException(status_code=404, detail="Profilo non trovato")
+    if not await db.profiles.find_one({"_id": oid}):
+        raise HTTPException(status_code=404, detail="Profilo non trovato")
+    return x_profile_id
+
+
+@api_router.get("/profiles")
+async def list_profiles():
+    docs = await db.profiles.find().sort("created_at", 1).to_list(200)
+    return [Profile.from_mongo(d).model_dump() for d in docs]
+
+
+@api_router.post("/profiles")
+async def create_profile(data: ProfileInput):
+    first = await db.profiles.count_documents({}) == 0
+    profile = Profile(name=data.name)
+    res = await db.profiles.insert_one(profile.to_mongo())
+    profile.id = str(res.inserted_id)
+    if first:  # existing data from before profiles goes to the first profile
+        await db.trips.update_many({"profile_id": None}, {"$set": {"profile_id": profile.id}})
+    return profile.model_dump()
+
+
+@api_router.put("/profiles/{profile_id}")
+async def rename_profile(profile_id: str, data: ProfileInput):
+    oid = to_oid(profile_id)
+    res = await db.profiles.update_one({"_id": oid}, {"$set": {"name": data.name}})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Profilo non trovato")
+    return Profile.from_mongo(await db.profiles.find_one({"_id": oid})).model_dump()
+
+
+@api_router.delete("/profiles/{profile_id}")
+async def delete_profile(profile_id: str):
+    res = await db.profiles.delete_one({"_id": to_oid(profile_id)})
+    if res.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Profilo non trovato")
+    await db.trips.delete_many({"profile_id": profile_id})
+    return {"ok": True}
+
+
 @api_router.get("/trips")
-async def list_trips(q: Optional[str] = None):
-    query = {}
+async def list_trips(q: Optional[str] = None, pid: str = Depends(current_profile)):
+    query = {"profile_id": pid}
     if q:
         rx = {"$regex": re.escape(q), "$options": "i"}
-        query = {"$or": [{"name": rx}, {"notes": rx}, {"origin": rx}, {"destination": rx}, {"waypoints": rx}]}
+        query["$or"] = [{"name": rx}, {"notes": rx}, {"origin": rx}, {"destination": rx}, {"waypoints": rx}]
     docs = await db.trips.find(query).sort("updated_at", -1).to_list(500)
     return [serialize(Trip.from_mongo(d)) for d in docs]
 
 
 @api_router.get("/trips/{trip_id}")
-async def get_trip(trip_id: str):
-    doc = await db.trips.find_one({"_id": to_oid(trip_id)})
+async def get_trip(trip_id: str, pid: str = Depends(current_profile)):
+    doc = await db.trips.find_one({"_id": to_oid(trip_id), "profile_id": pid})
     if not doc:
         raise HTTPException(status_code=404, detail="Viaggio non trovato")
     return serialize(Trip.from_mongo(doc))
 
 
 @api_router.post("/trips")
-async def create_trip(data: TripInput):
+async def create_trip(data: TripInput, pid: str = Depends(current_profile)):
     d = clean(data)
-    trip = Trip(**d, **(await legs_for(d)))
+    trip = Trip(**d, **(await legs_for(d)), profile_id=pid)
     res = await db.trips.insert_one(trip.to_mongo())
     trip.id = str(res.inserted_id)
     return serialize(trip)
 
 
 @api_router.put("/trips/{trip_id}")
-async def update_trip(trip_id: str, data: TripInput):
+async def update_trip(trip_id: str, data: TripInput, pid: str = Depends(current_profile)):
     oid = to_oid(trip_id)
     d = clean(data)
     update = {**d, **(await legs_for(d)), "updated_at": now_iso()}
-    res = await db.trips.update_one({"_id": oid}, {"$set": update})
+    res = await db.trips.update_one({"_id": oid, "profile_id": pid}, {"$set": update})
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Viaggio non trovato")
     doc = await db.trips.find_one({"_id": oid})
@@ -157,8 +214,8 @@ async def update_trip(trip_id: str, data: TripInput):
 
 
 @api_router.post("/trips/{trip_id}/duplicate")
-async def duplicate_trip(trip_id: str):
-    doc = await db.trips.find_one({"_id": to_oid(trip_id)})
+async def duplicate_trip(trip_id: str, pid: str = Depends(current_profile)):
+    doc = await db.trips.find_one({"_id": to_oid(trip_id), "profile_id": pid})
     if not doc:
         raise HTTPException(status_code=404, detail="Viaggio non trovato")
     src = Trip.from_mongo(doc)
@@ -169,17 +226,17 @@ async def duplicate_trip(trip_id: str):
 
 
 @api_router.patch("/trips/{trip_id}/dates")
-async def update_trip_dates(trip_id: str, data: TripDates):
+async def update_trip_dates(trip_id: str, data: TripDates, pid: str = Depends(current_profile)):
     oid = to_oid(trip_id)
-    res = await db.trips.update_one({"_id": oid}, {"$set": {**data.model_dump(exclude_unset=True), "updated_at": now_iso()}})
+    res = await db.trips.update_one({"_id": oid, "profile_id": pid}, {"$set": {**data.model_dump(exclude_unset=True), "updated_at": now_iso()}})
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Viaggio non trovato")
     return serialize(Trip.from_mongo(await db.trips.find_one({"_id": oid})))
 
 
 @api_router.delete("/trips/{trip_id}")
-async def delete_trip(trip_id: str):
-    res = await db.trips.delete_one({"_id": to_oid(trip_id)})
+async def delete_trip(trip_id: str, pid: str = Depends(current_profile)):
+    res = await db.trips.delete_one({"_id": to_oid(trip_id), "profile_id": pid})
     if res.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Viaggio non trovato")
     return {"ok": True}
@@ -227,10 +284,10 @@ async def delete_place(place_id: str):
 
 
 
-async def monthly_rows(month: str) -> list:
+async def monthly_rows(month: str, pid: str) -> list:
     if not re.fullmatch(r"\d{4}-\d{2}", month):
         raise HTTPException(status_code=422, detail="Mese non valido (AAAA-MM)")
-    docs = await db.trips.find({"legs": {"$ne": None}}).to_list(2000)
+    docs = await db.trips.find({"legs": {"$ne": None}, "profile_id": pid}).to_list(2000)
     rows = []
     for doc in docs:
         t = Trip.from_mongo(doc)
@@ -243,8 +300,8 @@ async def monthly_rows(month: str) -> list:
 
 
 @api_router.get("/reports/monthly")
-async def monthly_report(month: str):
-    rows = await monthly_rows(month)
+async def monthly_report(month: str, pid: str = Depends(current_profile)):
+    rows = await monthly_rows(month, pid)
     return {
         "month": month,
         "trips": len({r["trip_id"] for r in rows}),
@@ -255,8 +312,8 @@ async def monthly_report(month: str):
 
 
 @api_router.get("/reports/monthly/excel")
-async def monthly_report_excel(month: str):
-    rows = await monthly_rows(month)
+async def monthly_report_excel(month: str, pid: str = Depends(current_profile)):
+    rows = await monthly_rows(month, pid)
     days: dict = {}
     for r in rows:
         days.setdefault(r["date"], []).append(r)
@@ -270,7 +327,8 @@ async def monthly_report_excel(month: str):
         trips = ", ".join(dict.fromkeys(leg["trip"] for leg in legs))
         data.append([date.fromisoformat(d), trips, " → ".join(stops), round(sum(leg["distance_km"] for leg in legs), 2)])
     headers = ["Data", "Viaggio", "Percorso", "Distanza (km)"]
-    return write_xlsx(f"Report km mensile {month}", f"{len(data)} giorni", headers, data, 0, f"report_km_{month}.xlsx")
+    profile = await db.profiles.find_one({"_id": ObjectId(pid)})
+    return write_xlsx(f"Report km mensile {month} - {profile['name']}", f"{len(data)} giorni", headers, data, 0, f"report_km_{month}.xlsx")
 
 
 app.include_router(api_router)

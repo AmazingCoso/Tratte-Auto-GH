@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Compass, RotateCcw } from "lucide-react";
+import { Compass, RotateCcw, Users } from "lucide-react";
 import { api } from "@/lib/api";
+import { useProfile } from "@/lib/profile";
 import { buildMapsUrl, newWaypoint, routeKey, today } from "@/lib/maps";
 import { RouteForm } from "@/components/planner/RouteForm";
 import { ActionBar } from "@/components/planner/ActionBar";
@@ -17,6 +18,7 @@ const legsFromTrip = (trip, route) =>
   trip.legs ? { legs: trip.legs, total_km: trip.total_km, total_min: trip.total_min, mode: trip.mode, key: routeKey(route) } : null;
 
 export default function Planner() {
+  const { current, select } = useProfile();
   const [route, setRoute] = useState(emptyRoute);
   const [legsResult, setLegsResult] = useState(null);
   const [currentTrip, setCurrentTrip] = useState(null);
@@ -195,13 +197,24 @@ export default function Planner() {
               )}
             </p>
           </div>
-          <button
-            onClick={reset}
-            data-testid="btn-reset-planner"
-            className="shrink-0 flex items-center gap-2 h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900 transition-colors"
-          >
-            <RotateCcw className="w-4 h-4" /> <span className="hidden sm:inline">Nuovo</span>
-          </button>
+          <div className="shrink-0 flex flex-col items-end gap-2">
+            <button
+              onClick={() => select(null)}
+              data-testid="btn-switch-profile"
+              className="flex items-center gap-2 h-11 pl-1.5 pr-3 rounded-full border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:border-slate-300 transition-colors"
+            >
+              <span className="w-8 h-8 rounded-full bg-slate-900 text-white font-heading font-semibold flex items-center justify-center">{current.name.charAt(0).toUpperCase()}</span>
+              <span className="max-w-[90px] sm:max-w-[160px] truncate" data-testid="current-profile-name">{current.name}</span>
+              <Users className="w-4 h-4 text-slate-400" />
+            </button>
+            <button
+              onClick={reset}
+              data-testid="btn-reset-planner"
+              className="flex items-center gap-2 h-10 px-4 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900 transition-colors"
+            >
+              <RotateCcw className="w-4 h-4" /> <span className="hidden sm:inline">Nuovo</span>
+            </button>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">

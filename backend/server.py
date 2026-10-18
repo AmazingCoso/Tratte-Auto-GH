@@ -114,7 +114,7 @@ def clean(data: TripInput) -> dict:
 
 @api_router.get("/")
 async def root():
-    return {"message": "Pianificatore Viaggio API"}
+    return {"message": "Tratte Auto API"}
 
 
 @api_router.get("/trips")

@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/api/route")
 
-UA = {"User-Agent": "RutaPianificatoreViaggio/1.0"}
+UA = {"User-Agent": "TratteAuto/1.0"}
 PROFILES = {"driving": "routed-car", "walking": "routed-foot", "bicycling": "routed-bike", "transit": "routed-car"}
 COORD_RX = re.compile(r"^\s*(-?\d{1,2}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)\s*$")
 MODE_LABELS = {"driving": "Auto", "walking": "A piedi", "bicycling": "In bici", "transit": "Mezzi pubblici (stima su strada)"}

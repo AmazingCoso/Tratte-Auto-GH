@@ -1,4 +1,4 @@
-# PRD - Pianificatore Viaggio (Ruta)
+# PRD - Tratte Auto
 
 ## Problema originale
 Inizialmente era stato chiesto un CRM vendite, poi l'utente ha incollato un HTML "Pianificatore Viaggio" e ha scelto: trasformarlo in un'app completa. Nessun login, stile chiaro e minimale, UI in italiano.

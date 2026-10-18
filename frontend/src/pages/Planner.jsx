@@ -182,10 +182,10 @@ export default function Planner() {
         <header className="flex items-start justify-between gap-4 mb-8 fade-up">
           <div>
             <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] uppercase text-slate-500 mb-3">
-              <Compass className="w-4 h-4 text-blue-600" /> Ruta
+              <Compass className="w-4 h-4 text-blue-600" /> Pianificatore viaggi
             </div>
             <h1 className="font-heading text-4xl sm:text-5xl font-bold tracking-tight" data-testid="app-title">
-              Pianificatore Viaggio
+              Tratte Auto
             </h1>
             <p className="mt-2 text-sm sm:text-base text-slate-500 max-w-md">
               {currentTrip ? (
